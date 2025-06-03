@@ -44,6 +44,7 @@ class Ball:
         """
 
         sdt = dt / self.num_steps  # Divide the time step into smaller steps for better accuracy
+        # note this is a simple RK4 as gravity is constant
         for _ in range(self.num_steps):
             # RK4 for velocity and position
             # dy/dt = velocity, dv/dt = GRAVITY
@@ -51,22 +52,18 @@ class Ball:
             # k1
             v1 = self.velocity
             a1 = GRAVITY
-            p1 = self.pos
 
             # k2
             v2 = self.velocity + a1 * (sdt / 2)
             a2 = GRAVITY
-            p2 = self.pos + v1 * (sdt / 2)
 
             # k3
             v3 = self.velocity + a2 * (sdt / 2)
             a3 = GRAVITY
-            p3 = self.pos + v2 * (sdt / 2)
 
             # k4
             v4 = self.velocity + a3 * sdt
             a4 = GRAVITY
-            p4 = self.pos + v3 * sdt
 
             # Update position and velocity
             self.pos += (v1 + 2 * v2 + 2 * v3 + v4) * (sdt / 6)
@@ -132,36 +129,31 @@ class Canvas(QMainWindow):
         self.update()
 
     def check_bounds(self):
-        """Check if the ball is out of bounds and adjust its position and velocity accordingly."""
-        # Left edge
-        if self.ball.pos.x - self.ball.radius < 0:
-            self.ball.pos.x = self.ball.radius
-            self.ball.velocity.x *= -1
-        # Right edge
-        if self.ball.pos.x + self.ball.radius > self.sim_width:
-            self.ball.pos.x = self.sim_width - self.ball.radius
-            self.ball.velocity.x *= -1
-        # Bottom edge
-        if self.ball.pos.y - self.ball.radius < 0:
-            self.ball.pos.y = self.ball.radius
-            self.ball.velocity.y *= -1
-        # Top edge
-        if self.ball.pos.y + self.ball.radius > self.sim_height:
-            self.ball.pos.y = self.sim_height - self.ball.radius
-            self.ball.velocity.y *= -1
-        # simple position bounds
-        if self.ball.pos_simple.x - self.ball.radius < 0:
-            self.ball.pos_simple.x = self.ball.radius
-            self.ball.velocity_simple.x *= -1
-        if self.ball.pos_simple.x + self.ball.radius > self.sim_width:
-            self.ball.pos_simple.x = self.sim_width - self.ball.radius
-            self.ball.velocity_simple.x *= -1
-        if self.ball.pos_simple.y - self.ball.radius < 0:
-            self.ball.pos_simple.y = self.ball.radius
-            self.ball.velocity_simple.y *= -1
-        if self.ball.pos_simple.y + self.ball.radius > self.sim_height:
-            self.ball.pos_simple.y = self.sim_height - self.ball.radius
-            self.ball.velocity_simple.y *= -1
+        """
+        Check if the ball is out of bounds and adjust its position and velocity accordingly.
+        Handles both the main (RK4) and simple (explicit Euler) positions/velocities.
+        """
+
+        def reflect(pos, vel, radius, width, height):
+            # Left edge
+            if pos.x - radius < 0:
+                pos.x = radius
+                vel.x *= -1
+            # Right edge
+            if pos.x + radius > width:
+                pos.x = width - radius
+                vel.x *= -1
+            # Bottom edge
+            if pos.y - radius < 0:
+                pos.y = radius
+                vel.y *= -1
+            # Top edge
+            if pos.y + radius > height:
+                pos.y = height - radius
+                vel.y *= -1
+
+        reflect(self.ball.pos, self.ball.velocity, self.ball.radius, self.sim_width, self.sim_height)
+        reflect(self.ball.pos_simple, self.ball.velocity_simple, self.ball.radius, self.sim_width, self.sim_height)
 
     def paintEvent(self, event):
         """This is where the drawing is done"""

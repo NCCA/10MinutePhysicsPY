@@ -107,36 +107,30 @@ class Canvas(QMainWindow):
         self.update()
 
     def check_bounds(self):
-        """Check if the ball is out of bounds and adjust its position and velocity accordingly."""
-        # Left edge
-        if self.ball.pos.x - self.ball.radius < 0:
-            self.ball.pos.x = self.ball.radius
-            self.ball.velocity.x *= -1
-        # Right edge
-        if self.ball.pos.x + self.ball.radius > self.sim_width:
-            self.ball.pos.x = self.sim_width - self.ball.radius
-            self.ball.velocity.x *= -1
-        # Bottom edge
-        if self.ball.pos.y - self.ball.radius < 0:
-            self.ball.pos.y = self.ball.radius
-            self.ball.velocity.y *= -1
-        # Top edge
-        if self.ball.pos.y + self.ball.radius > self.sim_height:
-            self.ball.pos.y = self.sim_height - self.ball.radius
-            self.ball.velocity.y *= -1
-        # simple position bounds
-        if self.ball.pos_simple.x - self.ball.radius < 0:
-            self.ball.pos_simple.x = self.ball.radius
-            self.ball.velocity_simple.x *= -1
-        if self.ball.pos_simple.x + self.ball.radius > self.sim_width:
-            self.ball.pos_simple.x = self.sim_width - self.ball.radius
-            self.ball.velocity_simple.x *= -1
-        if self.ball.pos_simple.y - self.ball.radius < 0:
-            self.ball.pos_simple.y = self.ball.radius
-            self.ball.velocity_simple.y *= -1
-        if self.ball.pos_simple.y + self.ball.radius > self.sim_height:
-            self.ball.pos_simple.y = self.sim_height - self.ball.radius
-            self.ball.velocity_simple.y *= -1
+        """
+        Check if the ball is out of bounds and adjust its position and velocity accordingly.
+        Handles both the main (semi-implicit Euler) and simple (explicit Euler) positions/velocities.
+        """
+        def reflect(pos, vel, radius, width, height):
+            # Left edge
+            if pos.x - radius < 0:
+                pos.x = radius
+                vel.x *= -1
+            # Right edge
+            if pos.x + radius > width:
+                pos.x = width - radius
+                vel.x *= -1
+            # Bottom edge
+            if pos.y - radius < 0:
+                pos.y = radius
+                vel.y *= -1
+            # Top edge
+            if pos.y + radius > height:
+                pos.y = height - radius
+                vel.y *= -1
+
+        reflect(self.ball.pos, self.ball.velocity, self.ball.radius, self.sim_width, self.sim_height)
+        reflect(self.ball.pos_simple, self.ball.velocity_simple, self.ball.radius, self.sim_width, self.sim_height)
 
     def paintEvent(self, event):
         """This is where the drawing is done"""
