@@ -20,7 +20,14 @@
       <string>controls</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="1" column="2">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Num Balls</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
        <widget class="QComboBox" name="integration_method">
         <item>
          <property name="text">
@@ -44,14 +51,28 @@
         </item>
        </widget>
       </item>
-      <item row="0" column="0">
+      <item row="0" column="6">
        <widget class="QPushButton" name="reset">
         <property name="text">
          <string>reset</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="4">
+      <item row="1" column="3">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Steps</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Integration Method</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="5">
        <widget class="QSpinBox" name="num_steps">
         <property name="minimum">
          <number>1</number>
@@ -64,14 +85,20 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>Integration Method</string>
+      <item row="1" column="6">
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
-       </widget>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
       </item>
-      <item row="0" column="4">
+      <item row="0" column="5">
        <widget class="QSlider" name="restitution_slider">
         <property name="maximum">
          <number>100</number>
@@ -87,27 +114,20 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="3">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Steps</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
+      <item row="0" column="3">
        <widget class="QLabel" name="restitution_label">
         <property name="text">
-         <string>Restitution</string>
+         <string>Restitution 1.0</string>
         </property>
        </widget>
       </item>
       <item row="0" column="1">
        <widget class="QSpinBox" name="num_balls">
         <property name="minimum">
-         <number>1</number>
+         <number>2</number>
         </property>
         <property name="maximum">
-         <number>500</number>
+         <number>200</number>
         </property>
         <property name="value">
          <number>20</number>

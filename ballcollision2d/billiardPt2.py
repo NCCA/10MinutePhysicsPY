@@ -34,7 +34,7 @@ class Ball:
         self.mass = mass
         self.colour = QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
-    def update(self, dt: float, integration_mode: Enum) -> None:
+    def update(self, dt: float, integration_mode: Enum, num_steps: int) -> None:
         """
         Update the ball's velocity and position based on elapsed time.
 
@@ -47,14 +47,14 @@ class Ball:
                 self.velocity += GRAVITY * dt
                 self.pos += self.velocity * dt
             case IntegrationMode.SEMI_IMPLICIT:
-                sdt = dt / self.num_steps  # Divide the time step into smaller steps for better accuracy
-                for _ in range(self.num_steps):
+                sdt = dt / num_steps  # Divide the time step into smaller steps for better accuracy
+                for _ in range(num_steps):
                     self.velocity += GRAVITY * sdt
                     self.pos += self.velocity * sdt
             case IntegrationMode.RK4:
-                sdt = dt / self.num_steps  # Divide the time step into smaller steps for better accuracy
+                sdt = dt / num_steps  # Divide the time step into smaller steps for better accuracy
                 # note this is a simple RK4 as gravity is constant
-                for _ in range(self.num_steps):
+                for _ in range(num_steps):
                     # RK4 for velocity and position
                     # dy/dt = velocity, dv/dt = GRAVITY
 
@@ -79,8 +79,8 @@ class Ball:
                     self.velocity += (a1 + 2 * a2 + 2 * a3 + a4) * (sdt / 6)
             case IntegrationMode.VERLET:
                 # Verlet integration
-                sdt = dt / self.num_steps
-                for _ in range(self.num_steps):
+                sdt = dt / num_steps
+                for _ in range(num_steps):
                     # Calculate the new position based on the current position and velocity
                     new_pos = self.pos + self.velocity * sdt + 0.5 * GRAVITY * (sdt**2)
                     # Update velocity based on the average of the current and new positions
@@ -216,7 +216,8 @@ class Simulation(QMainWindow):
 
             # Update the ball's position and velocity based on the integration methodmo
             mode = list(IntegrationMode)
-            ball1.update(dt, mode[self.integration_method.currentIndex()])
+            
+            ball1.update(dt, mode[self.integration_method.currentIndex()], self.num_steps.value())
 
             for j in range(i + 1, len(self.balls)):
                 ball2 = self.balls[j]
