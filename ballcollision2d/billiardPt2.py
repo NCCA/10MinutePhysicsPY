@@ -5,9 +5,10 @@ import random
 import sys
 
 from nccapy.Math.Vec2 import Vec2
-from PySide6.QtCore import QElapsedTimer, Qt
+from PySide6.QtCore import QElapsedTimer, QFile, Qt
 from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen
-from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QMainWindow, QPushButton, QSlider, QVBoxLayout, QWidget
+from PySide6.QtUiTools import QUiLoader
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget
 
 GRAVITY = Vec2(0.0, 0.0)  # Gravity vector
 
@@ -83,42 +84,31 @@ class Simulation(QMainWindow):
         self.last_time = self.elapsed_timer.elapsed()  # milliseconds
         self.startTimer(1.0 / 60.0)
         self.restitution = 1.0
-        self.setup_scene()
-        self.create_ui()
+
+        self.load_ui()
         self.c_scale = min(self.width(), self.height()) / self.sim_width
+        self.setup_scene()
 
-    def create_ui(self) -> None:
-        # --- Layout with controls above canvas ---
-        main_widget = QWidget()
-        main_layout = QVBoxLayout(main_widget)
-        main_layout.setContentsMargins(0, 0, 0, 0)
-
-        controls_layout = QHBoxLayout()
-        controls_layout.setContentsMargins(10, 10, 10, 0)
-        controls_layout.setSpacing(10)
-
-        reset_button = QPushButton("Reset")
-        reset_button.clicked.connect(self.setup_scene)
-        controls_layout.addWidget(reset_button)
-
-        self.restitution_label = QLabel(f"Restitution: {self.restitution:.2f}")
-        controls_layout.addWidget(self.restitution_label)
-
-        restitution = QSlider(Qt.Horizontal)
-        restitution.setRange(0, 100)
-        restitution.setValue(int(self.restitution * 100))
-        restitution.setTickPosition(QSlider.TicksBelow)
-        restitution.setTickInterval(10)
-        restitution.valueChanged.connect(self.update_restitution)
-        controls_layout.addWidget(restitution)
-
-        controls_layout.addStretch()
-        main_layout.addLayout(controls_layout)
-
+    def load_ui(self) -> None:
+        loader = QUiLoader()
+        ui_file = QFile("Part2UI.ui")
+        ui_file.open(QFile.ReadOnly)
+        # Load the UI into `self` as the parent
+        loaded_ui = loader.load(ui_file, self)
+        self.setCentralWidget(loaded_ui)
+        # add all children with object names to `self`
+        for child in loaded_ui.findChildren(QWidget):
+            name = child.objectName()
+            if name:
+                setattr(self, name, child)
+        ui_file.close()
+        self.reset.clicked.connect(self.setup_scene)
+        self.restitution_slider.valueChanged.connect(self.update_restitution)
         self.canvas = SimulationCanvas(self)
-        main_layout.addWidget(self.canvas)
-
-        self.setCentralWidget(main_widget)
+        layout = loaded_ui.layout()
+        layout.addWidget(self.canvas)
+        layout.setStretch(0, 0)
+        layout.setStretch(1, 2)
 
     def update_restitution(self, value):
         self.restitution = value / 100.0
@@ -126,7 +116,9 @@ class Simulation(QMainWindow):
 
     def setup_scene(self):
         self.balls.clear()
-        num_balls = 20
+
+        num_balls = self.num_balls.value()
+        print(num_balls)
         for _ in range(num_balls):
             radius = random.uniform(0.2, 1.0)
             mass = math.pi * radius**2
