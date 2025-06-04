@@ -117,7 +117,7 @@
       <item row="0" column="3">
        <widget class="QLabel" name="restitution_label">
         <property name="text">
-         <string>Restitution 1.0</string>
+         <string>Restitution 1.00</string>
         </property>
        </widget>
       </item>
