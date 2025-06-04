@@ -16,22 +16,20 @@ class Ball:
     Used for simulating projectile motion under gravity.
     """
 
-    def __init__(self, x: float, y: float, vx: float, vy: float, radius: float) -> None:
+    def __init__(self, pos: Vec2, vel: Vec2, radius: float) -> None:
         """
         Initialize a Ball object.
 
         Args:
-            x (float): Initial x-coordinate of the ball.
-            y (float): Initial y-coordinate of the ball.
-            vx (float): Initial velocity in the x-direction.
-            vy (float): Initial velocity in the y-direction.
+            pos (Vec2): Initial position of the ball.
+            vel (Vec2): Initial velocity of the ball.
             radius (float): Radius of the ball.
         """
-        self.pos = Vec2(x, y)
-        self.pos_simple = Vec2(x, y)
+        self.pos = pos.clone()
+        self.pos_simple = pos.clone()
         self.num_steps = 1000  # Number of steps for more accurate simulation
-        self.velocity = Vec2(vx, vy)
-        self.velocity_simple = Vec2(vx, vy)
+        self.velocity = vel.clone()
+        self.velocity_simple = vel.clone()
         self.radius = radius
         self.colour = QColor(255, 0, 0)
 
@@ -73,11 +71,11 @@ class Ball:
         self.pos_simple += self.velocity_simple * dt
 
 
-class Canvas(QMainWindow):
+class Simulation(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Simple Cannon Ball 2D from 10 Minute Physics RK4 Demo")
-        self.ball = Ball(0.2, 0.2, 10.0, 15.0, 0.2)
+        self.ball = Ball(Vec2(0.2, 0.2), Vec2(10.0, 15.0), 0.2)
         self.resize(1024, 720)
         self.sim_width = 20.0
         self.sim_height = 15.0
@@ -113,7 +111,7 @@ class Canvas(QMainWindow):
             self.close()
         elif event.key() == Qt.Key_R:
             # Reset the simulation
-            self.ball = Ball(0.2, 0.2, 10.0, 15.0, 0.2)
+            self.ball = Ball(Vec2(0.2, 0.2), Vec2(10.0, 15.0), 0.2)
 
     def timerEvent(self, event):
         """measure the time elapsed between updates (in seconds), which is essential for time based
@@ -200,6 +198,6 @@ class Canvas(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    canvas = Canvas()
-    canvas.show()
+    simulation = Simulation()
+    simulation.show()
     sys.exit(app.exec())

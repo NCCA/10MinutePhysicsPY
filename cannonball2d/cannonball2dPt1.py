@@ -43,7 +43,7 @@ class Ball:
         self.pos += self.velocity * dt
 
 
-class Canvas(QMainWindow):
+class Simulation(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Simple Cannon Ball 2D from 10 Minute Physics")
@@ -59,12 +59,12 @@ class Canvas(QMainWindow):
         self.last_time = self.elapsed_timer.elapsed()  # milliseconds
         self.startTimer(1.0 / 60.0)
 
-    def canvas_x(self, pos):
-        """Convert a position in the simulation to canvas x-coordinate."""
+    def Simulation_x(self, pos):
+        """Convert a position in the simulation to Simulation x-coordinate."""
         return pos.x * self.c_scale
 
-    def canvas_y(self, pos):
-        """Convert a position in the simulation to canvas y-coordinate."""
+    def Simulation_y(self, pos):
+        """Convert a position in the simulation to Simulation y-coordinate."""
         return self.height() - pos.y * self.c_scale
 
     def update_scale(self):
@@ -95,7 +95,7 @@ class Canvas(QMainWindow):
         self.last_time = current_time
         self.ball.update(dt)
         self.check_bounds()
-        # call redraw of the canvas
+        # call redraw of the Simulation
         self.update()
 
     def check_bounds(self):
@@ -125,19 +125,19 @@ class Canvas(QMainWindow):
         self.draw_text(painter, "Cannon Ball 2D Simulation Press R to reset", 10, 20, 16, QColor(0, 0, 0))
 
     def draw_circle(self, painter, ball):
-        """Draw a circle representing the ball on the canvas."""
+        """Draw a circle representing the ball on the Simulation."""
         painter.setPen(QPen(ball.colour))
         painter.setBrush(QBrush(ball.colour))
         # Calculate the position and radius of the circle which is different from the simulation coordinates
-        x = self.canvas_x(ball.pos)
-        y = self.canvas_y(ball.pos)
+        x = self.Simulation_x(ball.pos)
+        y = self.Simulation_y(ball.pos)
         radius = ball.radius * self.c_scale
         # Draw the circle
         painter.drawEllipse(int(x - radius), int(y - radius), int(radius * 2), int(radius * 2))
 
     def draw_text(self, painter, text, x, y, size, colour, font="Arial"):
         """
-        Draw text on the canvas.
+        Draw text on the Simulation.
 
         Args:
             painter (QPainter): The painter to draw with.
@@ -155,6 +155,6 @@ class Canvas(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    canvas = Canvas()
-    canvas.show()
+    simulation = Simulation()
+    simulation.show()
     sys.exit(app.exec())

@@ -5,6 +5,7 @@ requires-python = ">=3.13"
 [manifest]
 members = [
     "10minutephysicsdemos",
+    "ballcollisions2d",
     "cannomball2d",
 ]
 
@@ -19,9 +20,20 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "nccapy", specifier = ">=0.1.6" },
+    { name = "nccapy", specifier = ">=0.1.7" },
     { name = "pyside6", specifier = ">=6.9.0" },
 ]
+
+[[package]]
+name = "ballcollisions2d"
+version = "0.1.0"
+source = { virtual = "ballcollision2d" }
+dependencies = [
+    { name = "pyside6" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "pyside6", specifier = ">=6.9.0" }]
 
 [[package]]
 name = "cannomball2d"
@@ -36,16 +48,16 @@ requires-dist = [{ name = "pyside6", specifier = ">=6.9.0" }]
 
 [[package]]
 name = "nccapy"
-version = "0.1.6"
+version = "0.1.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
     { name = "pillow" },
     { name = "pygame" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ba/83/d7aca938c1963bc29031e9886d780b664b755431c0722b5fa4d2383f4ef1/nccapy-0.1.6.tar.gz", hash = "sha256:c14e20821b145eaf1f1b2fc1768621bdfaa228c5e68088cc74d9fa6de2882105", size = 10775176, upload-time = "2025-06-03T16:19:49.655Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/15/36/7741c003a97c2aa67b890b6ee7e80ca0ee074da77d46e21fca3a93729cd4/nccapy-0.1.7.tar.gz", hash = "sha256:3e66548b2116d4fb4cf4dac2604621d20e3cabea1280eae86c9d89153b9b609a", size = 10963673, upload-time = "2025-06-04T07:45:29.259Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ef/ff/5ee2312a890aae56d15a2dad52a3a51591f7bdeb438059a2210827eb9347/nccapy-0.1.6-py3-none-any.whl", hash = "sha256:1cce02bca4a9abe91b59f9925e4fff55b41abf9305af67ff2251a6fa485edf35", size = 31065, upload-time = "2025-06-03T16:19:28.127Z" },
+    { url = "https://files.pythonhosted.org/packages/90/c0/fa6ba1cd0e2dd2aa94b359d22cc712cd23b8cc47d38bc151c5a087f7118b/nccapy-0.1.7-py3-none-any.whl", hash = "sha256:a224d32c98146d1725037808038efb4b1b9e8798ea0d2a7a70273bd50889f39e", size = 31204, upload-time = "2025-06-04T07:45:02.943Z" },
 ]
 
 [[package]]

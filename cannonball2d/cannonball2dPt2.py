@@ -1,6 +1,7 @@
 #!/usr/bin/env -S uv run --script
 
 import sys
+from copy import copy
 
 from nccapy.Math.Vec2 import Vec2
 from PySide6.QtCore import QElapsedTimer, Qt
@@ -16,22 +17,24 @@ class Ball:
     Used for simulating projectile motion under gravity.
     """
 
-    def __init__(self, x: float, y: float, vx: float, vy: float, radius: float) -> None:
+    def __init__(self, pos: Vec2, vel: Vec2, radius: float) -> None:
         """
         Initialize a Ball object.
 
         Args:
-            x (float): Initial x-coordinate of the ball.
-            y (float): Initial y-coordinate of the ball.
-            vx (float): Initial velocity in the x-direction.
-            vy (float): Initial velocity in the y-direction.
+            pos (Vec2): Initial position of the ball.
+            vel (Vec2): Initial velocity of the ball.
             radius (float): Radius of the ball.
         """
-        self.pos = Vec2(x, y)
-        self.pos_simple = Vec2(x, y)
+        # Note in this example I use copy to ensure that the Vec2 objects are not shared between instances
+        # which is important for the simulation to work correctly
+        # The previsous example used x,y vx,vy and constructed new Vec2 objects from them.
+        # In the next demos I will use the clone method of Vec2 to ensure that the objects are not shared
+        self.pos = copy(pos)
+        self.pos_simple = copy(pos)  # Simple position for explicit Euler integration
         self.num_steps = 1000  # Number of steps for more accurate simulation
-        self.velocity = Vec2(vx, vy)
-        self.velocity_simple = Vec2(vx, vy)
+        self.velocity = copy(vel)
+        self.velocity_simple = copy(vel)
         self.radius = radius
         self.colour = QColor(255, 0, 0)
 
@@ -55,7 +58,7 @@ class Canvas(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Simple Cannon Ball 2D from 10 Minute Physics")
-        self.ball = Ball(0.2, 0.2, 10.0, 15.0, 0.2)
+        self.ball = Ball(Vec2(0.2, 0.2), Vec2(10.0, 15.0), 0.2)
         self.resize(1024, 720)
         self.sim_width = 20.0
         self.sim_height = 15.0
@@ -91,7 +94,7 @@ class Canvas(QMainWindow):
             self.close()
         elif event.key() == Qt.Key_R:
             # Reset the simulation
-            self.ball = Ball(0.2, 0.2, 10.0, 15.0, 0.2)
+            self.ball = Ball(Vec2(0.2, 0.2), Vec2(10.0, 15.0), 0.2)
 
     def timerEvent(self, event):
         """measure the time elapsed between updates (in seconds), which is essential for time based
@@ -111,6 +114,7 @@ class Canvas(QMainWindow):
         Check if the ball is out of bounds and adjust its position and velocity accordingly.
         Handles both the main (semi-implicit Euler) and simple (explicit Euler) positions/velocities.
         """
+
         def reflect(pos, vel, radius, width, height):
             # Left edge
             if pos.x - radius < 0:

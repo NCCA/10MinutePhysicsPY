@@ -13,22 +13,36 @@ GRAVITY = Vec2(0.0, -9.78)  # Gravity vector
 
 
 class IntegrationMode(Enum):
-    SIMPLE = "simple"
-    SEMI_IMPLICIT = "semi-implicit"
-    RK4 = "rk4"
-    VERLET = "verlet"
+    SIMPLE = "Simple Euler"
+    SEMI_IMPLICIT = "Semi-implicit Euler"
+    RK4 = "RK4"
+    VERLET = "Verlet"
 
 
 class Ball:
-    def __init__(self, x, y, vx, vy, radius):
-        self.pos = Vec2(x, y)
-        self.velocity = Vec2(vx, vy)
+    def __init__(self, pos: Vec2, velocity: Vec2, radius: float) -> None:
+        """
+        Initialize a Ball object.
+
+        Args:
+            pos (Vec2): Initial position of the ball.
+            vel (Vec2): Initial velocity of the ball.
+            radius (float): Radius of the ball.
+        """
+        self.pos = pos.clone()
+        self.velocity = velocity.clone()
         self.radius = radius * random.uniform(0.5, 1.5)  # Randomize radius slightly
-        self.gravity = Vec2(0.0, -10.0)
         self.colour = QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
         self.num_steps = 100  # Number of steps for more accurate simulation
 
-    def update(self, dt, integration_mode):
+    def update(self, dt: float, integration_mode: Enum) -> None:
+        """
+        Update the ball's velocity and position based on elapsed time.
+
+        Args:
+            dt (float): Time step in seconds.
+            integration_mode (IntegrationMode): The integration method to use for updating the ball's position and velocity.
+        """
         match integration_mode:
             case IntegrationMode.SIMPLE:
                 self.velocity += GRAVITY * dt
@@ -76,15 +90,12 @@ class Ball:
                     self.pos = new_pos
 
 
-class Canvas(QMainWindow):
+class Simulation(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        # var simWidth = canvas.width / cScale;
-        # var simHeight = canvas.height / cScale;
-
         self.setWindowTitle("Simple Cannon Ball 2D from 10 Minute Physics")
-        self.balls = []  # Ball(0.2, 0.2, 10.0, 15.0, 0.2)
+        self.balls = []
         self.resize(1024, 720)
         self.sim_width = 20.0
         self.sim_height = 15.0
@@ -98,9 +109,15 @@ class Canvas(QMainWindow):
         self.integration_mode = IntegrationMode.RK4  # Default integration mode
 
     def canvas_x(self, pos):
+        """Convert a position in the simulation to canvas x-coordinate."""
         return pos.x * self.c_scale
 
+    def canvas_y(self, pos):
+        """Convert a position in the simulation to canvas y-coordinate."""
+        return self.height() - pos.y * self.c_scale
+
     def update_scale(self):
+        """Update the scale based on the current window size."""
         self.c_scale = min(self.width() / self.sim_width, self.height() / self.sim_height)
         self.sim_width = self.width() / self.c_scale
         self.sim_height = self.height() / self.c_scale
@@ -114,15 +131,12 @@ class Canvas(QMainWindow):
                 # Create a new ball at the mouse position with a random velocity
                 vx = 10.0 * (2.0 * (random.random() - 0.5))  # Random horizontal velocity
                 vy = 10.0 * (2.0 * (random.random() - 0.5))  # Random vertical velocity
-                new_ball = Ball(x, y, vx, vy, 0.2)
+                new_ball = Ball(Vec2(x, y), Vec2(vx, vy), 0.2)
                 self.balls.append(new_ball)
 
     def resizeEvent(self, event):
         self.update_scale()
         super().resizeEvent(event)
-
-    def canvas_y(self, pos):
-        return self.height() - pos.y * self.c_scale
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
@@ -132,7 +146,7 @@ class Canvas(QMainWindow):
             self.balls.clear()
         elif event.key() == Qt.Key_R:
             # Reset the simulation
-            self.balls = [Ball(0.2, 0.2, 10.0, 15.0, 0.2)]
+            self.balls = [Ball(Vec2(0.2, 0.2), Vec2(10.0, 15.0), 0.2)]
         elif event.key() == Qt.Key_1:
             self.integration_mode = IntegrationMode.SIMPLE
 
@@ -144,6 +158,11 @@ class Canvas(QMainWindow):
             self.integration_mode = IntegrationMode.VERLET
 
     def timerEvent(self, event):
+        """measure the time elapsed between updates (in seconds), which is essential for time based
+        calculations in simulations, animations, or games. It ensures that the simulation progresses
+        at a rate consistent with real time, regardless of
+        how fast or slow the update loop is running."""
+
         current_time = self.elapsed_timer.elapsed()  # milliseconds
         dt = (current_time - self.last_time) / 1000.0  # convert ms to seconds
         self.last_time = current_time
@@ -153,6 +172,10 @@ class Canvas(QMainWindow):
         self.check_bounds()
 
     def check_bounds(self):
+        """
+        Check if the ball is out of bounds and adjust its position and velocity accordingly.
+        """
+
         for ball in self.balls:
             # Left edge
             if ball.pos.x - ball.radius < 0:
@@ -219,6 +242,6 @@ class Canvas(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    canvas = Canvas()
-    canvas.show()
+    simulation = Simulation()
+    simulation.show()
     sys.exit(app.exec())
