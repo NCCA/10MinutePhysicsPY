@@ -74,9 +74,10 @@ class Simulation(QMainWindow):
         self.setWindowTitle("Billard Ball 2D from 10 Minute Physics")
         self.balls = []
         self.resize(1024, 720)
+        # note these values are a good aspect ratio for the simulation
+        # when drawing on a 1024x720 canvas
         self.sim_width = 20.0
-        self.sim_height = 15.0
-        self.c_scale = min(self.width(), self.height()) / self.sim_width
+        self.sim_height = 12.0
         self.elapsed_timer = QElapsedTimer()
         self.elapsed_timer.start()
         self.last_time = self.elapsed_timer.elapsed()  # milliseconds
@@ -113,6 +114,7 @@ class Simulation(QMainWindow):
 
         self.canvas = SimulationCanvas(self)
         main_layout.addWidget(self.canvas)
+        self.c_scale = min(self.width(), self.height()) / self.sim_width
 
         self.setCentralWidget(main_widget)
         # --- End layout code ---
@@ -144,16 +146,11 @@ class Simulation(QMainWindow):
         canvas_width = self.canvas.width()
         canvas_height = self.canvas.height()
         self.c_scale = min(canvas_width / self.sim_width, canvas_height / self.sim_height)
-        # Optionally, keep sim_width and sim_height fixed, or update them if you want the simulation area to scale
-        # For a fixed simulation area, comment out the next two lines:
-        # self.sim_width = canvas_width / self.c_scale
-        # self.sim_height = canvas_height / self.c_scale
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
             self.close()
         elif event.key() == Qt.Key_R:
-            self.balls.clear()
             self.setup_scene()
 
     def timerEvent(self, event):
@@ -173,16 +170,24 @@ class Simulation(QMainWindow):
         self.check_bounds()
 
     def check_bounds(self):
+        """
+        Check if the ball is out of bounds and adjust its position and velocity accordingly.
+        """
+
         for ball in self.balls:
+            # Left edge
             if ball.pos.x - ball.radius < 0:
                 ball.pos.x = ball.radius
                 ball.velocity.x *= -1
+            # Right edge
             if ball.pos.x + ball.radius > self.sim_width:
                 ball.pos.x = self.sim_width - ball.radius
                 ball.velocity.x *= -1
-            if ball.pos.y - +ball.radius < 0:
+            # Bottom edge
+            if ball.pos.y - ball.radius < 0:
                 ball.pos.y = ball.radius
                 ball.velocity.y *= -1
+            # Top edge
             if ball.pos.y + ball.radius > self.sim_height:
                 ball.pos.y = self.sim_height - ball.radius
                 ball.velocity.y *= -1
