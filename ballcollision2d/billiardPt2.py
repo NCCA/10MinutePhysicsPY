@@ -7,7 +7,7 @@ from enum import Enum
 
 from nccapy.Math.Vec2 import Vec2
 from PySide6.QtCore import QElapsedTimer, QFile, Qt
-from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen
+from PySide6.QtGui import QBrush, QColor, QPainter, QPen
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget
 
@@ -55,25 +55,18 @@ class Ball:
                 sdt = dt / num_steps  # Divide the time step into smaller steps for better accuracy
                 # note this is a simple RK4 as gravity is constant
                 for _ in range(num_steps):
-                    # RK4 for velocity and position
-                    # dy/dt = velocity, dv/dt = GRAVITY
-
                     # k1
                     v1 = self.velocity
                     a1 = GRAVITY
-
                     # k2
                     v2 = self.velocity + a1 * (sdt / 2)
                     a2 = GRAVITY
-
                     # k3
                     v3 = self.velocity + a2 * (sdt / 2)
                     a3 = GRAVITY
-
                     # k4
                     v4 = self.velocity + a3 * sdt
                     a4 = GRAVITY
-
                     # Update position and velocity
                     self.pos += (v1 + 2 * v2 + 2 * v3 + v4) * (sdt / 6)
                     self.velocity += (a1 + 2 * a2 + 2 * a3 + a4) * (sdt / 6)
@@ -148,6 +141,7 @@ class Simulation(QMainWindow):
         self.setup_scene()
 
     def load_ui(self) -> None:
+        """Load the UI from a .ui file and set up the connections."""
         loader = QUiLoader()
         ui_file = QFile("Part2UI.ui")
         ui_file.open(QFile.ReadOnly)
@@ -160,6 +154,7 @@ class Simulation(QMainWindow):
             if name:
                 setattr(self, name, child)
         ui_file.close()
+        # add signals
         self.reset.clicked.connect(self.setup_scene)
         self.restitution_slider.valueChanged.connect(self.update_restitution)
         self.canvas = SimulationCanvas(self)
@@ -168,11 +163,17 @@ class Simulation(QMainWindow):
         layout.setStretch(0, 0)
         layout.setStretch(1, 2)
 
-    def update_restitution(self, value):
+    def update_restitution(self, value) -> None:
+        """
+        Update the restitution value based on the slider input and update the label.
+        Args:
+            value (int): The value from the restitution slider (0-100).
+        """
         self.restitution = value / 100.0
         self.restitution_label.setText(f"Restitution: {self.restitution:.2f}")
 
-    def setup_scene(self):
+    def setup_scene(self) -> None:
+        """Set up the initial scene with a specified number of balls taken from the UI"""
         self.balls.clear()
 
         num_balls = self.num_balls.value()
@@ -185,25 +186,30 @@ class Simulation(QMainWindow):
             vel = Vec2(random.uniform(-5.0, 5.0), random.uniform(-5.0, 5.0))
             self.balls.append(Ball(radius, mass, pos, vel))
 
-    def canvas_x(self, pos):
+    def canvas_x(self, pos) -> float:
+        """Convert a position in the simulation to canvas x-coordinate."""
         return pos.x * self.c_scale
 
-    def canvas_y(self, pos):
+    def canvas_y(self, pos) -> float:
+        """Convert a position in the simulation to canvas y-coordinate."""
         return self.canvas.height() - pos.y * self.c_scale
 
-    def update_scale(self):
+    def update_scale(self) -> None:
+        """Update the simulation scale based on the current canvas size."""
         # Use the canvas size, not the window size
         canvas_width = self.canvas.width()
         canvas_height = self.canvas.height()
         self.c_scale = min(canvas_width / self.sim_width, canvas_height / self.sim_height)
 
-    def keyPressEvent(self, event):
+    def keyPressEvent(self, event) -> None:
+        """Handle key press events for the simulation."""
         if event.key() == Qt.Key_Escape:
             self.close()
         elif event.key() == Qt.Key_R:
             self.setup_scene()
 
-    def timerEvent(self, event):
+    def timerEvent(self, event) -> None:
+        """Handle the timer event to update the simulation."""
         current_time = self.elapsed_timer.elapsed()  # milliseconds
         dt = (current_time - self.last_time) / 1000.0  # convert ms to seconds
         self.last_time = current_time
@@ -211,12 +217,16 @@ class Simulation(QMainWindow):
         self.canvas.update()
 
     def simulate(self, dt):
+        """Simulate the motion of the balls in the simulation.
+        Args:
+            dt (float): Time step in seconds.
+        """
         for i in range(len(self.balls)):
             ball1 = self.balls[i]
 
             # Update the ball's position and velocity based on the integration methodmo
             mode = list(IntegrationMode)
-            
+
             ball1.update(dt, mode[self.integration_method.currentIndex()], self.num_steps.value())
 
             for j in range(i + 1, len(self.balls)):
@@ -224,7 +234,7 @@ class Simulation(QMainWindow):
                 self.handle_ball_collisions(ball1, ball2)
         self.check_bounds()
 
-    def check_bounds(self):
+    def check_bounds(self) -> None:
         """
         Check if the ball is out of bounds and adjust its position and velocity accordingly.
         """
@@ -247,7 +257,13 @@ class Simulation(QMainWindow):
                 ball.pos.y = self.sim_height - ball.radius
                 ball.velocity.y *= -1
 
-    def handle_ball_collisions(self, ball1, ball2):
+    def handle_ball_collisions(self, ball1: Ball, ball2: Ball) -> None:
+        """
+        Handle collisions between two balls by adjusting their positions and velocities.
+        Args:
+            ball1 (Ball): The first ball involved in the collision.
+            ball2 (Ball): The second ball involved in the collision.
+        """
         dir = ball2.pos - ball1.pos
         d = dir.length()
         if d == 0 or d > ball1.radius + ball2.radius:
@@ -267,22 +283,28 @@ class Simulation(QMainWindow):
 
     # ---- Drawing logic is here, but only called by SimulationCanvas.paintEvent ----
     def draw_simulation(self, painter):
+        """
+        Draw the simulation on the canvas.
+        Args:
+            painter (QPainter): The painter to draw with.
+        """
         painter.setRenderHint(QPainter.Antialiasing)
         for ball in self.balls:
             self.draw_circle(painter, ball)
 
     def draw_circle(self, painter, ball):
+        """
+        Draw a circle representing a ball on the canvas.
+        Args:
+            painter (QPainter): The painter to draw with.
+            ball (Ball): The ball to draw.
+        """
         painter.setPen(QPen(ball.colour))
         painter.setBrush(QBrush(ball.colour))
         x = self.canvas_x(ball.pos)
         y = self.canvas_y(ball.pos)
         radius = ball.radius * self.c_scale
         painter.drawEllipse(int(x - radius), int(y - radius), int(radius * 2), int(radius * 2))
-
-    def draw_text(self, painter, text, x, y, size, colour, font="Arial"):
-        painter.setPen(colour)
-        painter.setFont(QFont(font, size))
-        painter.drawText(x, y, text)
 
 
 if __name__ == "__main__":
