@@ -3,6 +3,7 @@
 import math
 import random
 import sys
+from enum import Enum
 
 from nccapy.Math.Vec2 import Vec2
 from PySide6.QtCore import QElapsedTimer, QFile, Qt
@@ -11,6 +12,13 @@ from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget
 
 GRAVITY = Vec2(0.0, 0.0)  # Gravity vector
+
+
+class IntegrationMode(Enum):
+    EULER = 0
+    SEMI_IMPLICIT = 1
+    RK4 = 2
+    VERLET = 3
 
 
 class Ball:
@@ -26,9 +34,59 @@ class Ball:
         self.mass = mass
         self.colour = QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
-    def update(self, dt: float) -> None:
-        self.velocity += GRAVITY * dt
-        self.pos += self.velocity * dt
+    def update(self, dt: float, integration_mode: Enum) -> None:
+        """
+        Update the ball's velocity and position based on elapsed time.
+
+        Args:
+            dt (float): Time step in seconds.
+            integration_mode (IntegrationMode): The integration method to use for updating the ball's position and velocity.
+        """
+        match integration_mode:
+            case IntegrationMode.EULER:
+                self.velocity += GRAVITY * dt
+                self.pos += self.velocity * dt
+            case IntegrationMode.SEMI_IMPLICIT:
+                sdt = dt / self.num_steps  # Divide the time step into smaller steps for better accuracy
+                for _ in range(self.num_steps):
+                    self.velocity += GRAVITY * sdt
+                    self.pos += self.velocity * sdt
+            case IntegrationMode.RK4:
+                sdt = dt / self.num_steps  # Divide the time step into smaller steps for better accuracy
+                # note this is a simple RK4 as gravity is constant
+                for _ in range(self.num_steps):
+                    # RK4 for velocity and position
+                    # dy/dt = velocity, dv/dt = GRAVITY
+
+                    # k1
+                    v1 = self.velocity
+                    a1 = GRAVITY
+
+                    # k2
+                    v2 = self.velocity + a1 * (sdt / 2)
+                    a2 = GRAVITY
+
+                    # k3
+                    v3 = self.velocity + a2 * (sdt / 2)
+                    a3 = GRAVITY
+
+                    # k4
+                    v4 = self.velocity + a3 * sdt
+                    a4 = GRAVITY
+
+                    # Update position and velocity
+                    self.pos += (v1 + 2 * v2 + 2 * v3 + v4) * (sdt / 6)
+                    self.velocity += (a1 + 2 * a2 + 2 * a3 + a4) * (sdt / 6)
+            case IntegrationMode.VERLET:
+                # Verlet integration
+                sdt = dt / self.num_steps
+                for _ in range(self.num_steps):
+                    # Calculate the new position based on the current position and velocity
+                    new_pos = self.pos + self.velocity * sdt + 0.5 * GRAVITY * (sdt**2)
+                    # Update velocity based on the average of the current and new positions
+                    self.velocity += GRAVITY * sdt
+                    # Update position to the new position
+                    self.pos = new_pos
 
 
 class SimulationCanvas(QWidget):
@@ -118,7 +176,6 @@ class Simulation(QMainWindow):
         self.balls.clear()
 
         num_balls = self.num_balls.value()
-        print(num_balls)
         for _ in range(num_balls):
             radius = random.uniform(0.2, 1.0)
             mass = math.pi * radius**2
@@ -156,7 +213,11 @@ class Simulation(QMainWindow):
     def simulate(self, dt):
         for i in range(len(self.balls)):
             ball1 = self.balls[i]
-            ball1.update(dt)
+
+            # Update the ball's position and velocity based on the integration methodmo
+            mode = list(IntegrationMode)
+            ball1.update(dt, mode[self.integration_method.currentIndex()])
+
             for j in range(i + 1, len(self.balls)):
                 ball2 = self.balls[j]
                 self.handle_ball_collisions(ball1, ball2)
