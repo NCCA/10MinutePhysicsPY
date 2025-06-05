@@ -1,10 +1,42 @@
-import QtQuick 2.15
-import QtQuick.Controls 2.15
-import QtQuick.Layouts
+/*
+    LabeledRangeSlider.qml
+
+    A reusable QML component that displays a labeled RangeSlider with a formatted display
+    of the current range selection. Useful for selecting a numeric range (e.g., min/max radius)
+    in a settings panel or form.
+
+    Properties:
+        - label (string): The text label shown above the RangeSlider.
+        - minValue (real): The minimum value of the range (default: 0.1).
+        - maxValue (real): The maximum value of the range (default: 1.6).
+        - firstValue (real): The initial value of the first handle (default: 0.2).
+        - secondValue (real): The initial value of the second handle (default: 1.5).
+        - stepSize (real): The increment step for the slider (default: 0.01).
+
+    Signals:
+        - rangeChanged(real first, real second): Emitted whenever either handle of the RangeSlider changes,
+          or when the component is first completed.
+
+    Usage Example:
+        LabeledRangeSlider {
+            label: "Radius Range"
+            minValue: 0.1
+            maxValue: 2.5
+            firstValue: 0.2
+            secondValue: 1.5
+            stepSize: 0.01
+            onRangeChanged: backend.on_radius_range_changed(first, second)
+        }
+
+    Notes:
+        - The current range is displayed as text below the slider, formatted to three decimal places.
+        - The label and value display are horizontally centered.
+        - The component emits the rangeChanged signal on startup and whenever the user moves either handle.
+*/
 
 import QtQuick 2.15
 import QtQuick.Controls 2.15
-import QtQuick.Layouts 1.15
+import QtQuick.Layouts
 
 ColumnLayout {
     id: root

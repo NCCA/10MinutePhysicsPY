@@ -3,6 +3,7 @@ import math
 import random
 import sys
 from enum import Enum
+from typing import List, Optional
 
 from nccapy import Vec2
 from PySide6.QtCore import QElapsedTimer, QObject, QTimer, QUrl, Slot
@@ -14,6 +15,8 @@ GRAVITY = Vec2(0, 0)
 
 
 class IntegrationMode(Enum):
+    """Enumeration of available integration methods for ball motion."""
+
     EULER = 0
     SEMI_IMPLICIT = 1
     RK4 = 2
@@ -27,11 +30,20 @@ class Ball:
     """
 
     def __init__(self, radius: float, mass: float, pos: Vec2, vel: Vec2) -> None:
-        self.pos = pos.clone()
-        self.velocity = vel.clone()
-        self.radius = radius
-        self.mass = mass
-        self.colour = QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        """
+        Initialize a Ball instance.
+
+        Args:
+            radius (float): The radius of the ball.
+            mass (float): The mass of the ball.
+            pos (Vec2): The initial position of the ball.
+            vel (Vec2): The initial velocity of the ball.
+        """
+        self.pos: Vec2 = pos.clone()
+        self.velocity: Vec2 = vel.clone()
+        self.radius: float = radius
+        self.mass: float = mass
+        self.colour: QColor = QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
     def update(self, dt: float, integration_mode: Enum, num_steps: int) -> None:
         """
@@ -40,6 +52,7 @@ class Ball:
         Args:
             dt (float): Time step in seconds.
             integration_mode (IntegrationMode): The integration method to use for updating the ball's position and velocity.
+            num_steps (int): Number of substeps for integration.
         """
         match integration_mode:
             case IntegrationMode.EULER:
@@ -82,33 +95,48 @@ class Ball:
 
 
 class Backend(QObject):
-    def __init__(self, root):
+    """
+    Backend class for managing the simulation state and communication with QML.
+    """
+
+    def __init__(self, root: Optional[QObject]) -> None:
+        """
+        Initialize the Backend.
+
+        Args:
+            root (QObject or None): The root QML object, or None at startup.
+        """
         super().__init__()
-        self.root = root
-        self.num_circles = 5
-        self.positions = []
-        self.balls = []
-        self.sim_width = 20.0
-        self.sim_height = 12.0
-        self.num_balls = 20
-        self.canvas_width = 1024
-        self.canvas_height = 720
-        self.elapsed_timer = QElapsedTimer()
+        self.root: Optional[QObject] = root
+        self.num_circles: int = 5
+        self.positions: List[Vec2] = []
+        self.balls: List[Ball] = []
+        self.sim_width: float = 20.0
+        self.sim_height: float = 12.0
+        self.num_balls: int = 20
+        self.canvas_width: int = 1024
+        self.canvas_height: int = 720
+        self.elapsed_timer: QElapsedTimer = QElapsedTimer()
         self.elapsed_timer.start()
-        self.last_time = self.elapsed_timer.elapsed()  # milliseconds
-        self.restitution = 1.0
-        self.c_scale = min(self.canvas_width, self.canvas_height) / self.sim_width
-        self.min_radius = 0.1
-        self.max_radius = 1.0
-        self.min_velocity = -5.0
-        self.max_velocity = 5.0
+        self.last_time: int = self.elapsed_timer.elapsed()  # milliseconds
+        self.restitution: float = 1.0
+        self.c_scale: float = min(self.canvas_width, self.canvas_height) / self.sim_width
+        self.min_radius: float = 0.1
+        self.max_radius: float = 1.0
+        self.min_velocity: float = -5.0
+        self.max_velocity: float = 5.0
         self.setup_scene()
-        self.num_steps = 1  # Number of substeps for collision handling
-        self.integration_method = 0  # Default integration method
-        self.mouse_ball = Ball(1.0, math.pi * 2**2, Vec2(0, 0), Vec2(0, 0))
+        self.num_steps: int = 1  # Number of substeps for collision handling
+        self.integration_method: int = 0  # Default integration method
+        self.mouse_ball: Ball = Ball(1.0, math.pi * 2**2, Vec2(0, 0), Vec2(0, 0))
 
     def _create_ball(self) -> Ball:
-        """Create a new ball with random properties."""
+        """
+        Create a new ball with random properties.
+
+        Returns:
+            Ball: The created Ball instance.
+        """
         radius = random.uniform(self.min_radius, self.max_radius)
         mass = math.pi * radius**2
         pos = Vec2(random.uniform(radius, self.sim_width - radius), random.uniform(radius, self.sim_height - radius))
@@ -119,30 +147,50 @@ class Backend(QObject):
 
     @Slot()
     def setup_scene(self) -> None:
-        """Set up the initial scene with a specified number of balls taken from the UI"""
+        """
+        Set up the initial scene with a specified number of balls taken from the UI.
+        """
         self.balls.clear()
-
         for _ in range(self.num_balls):
             self.balls.append(self._create_ball())
 
     @Slot(int, int)
-    def set_canvas_size(self, w, h):
+    def set_canvas_size(self, w: int, h: int) -> None:
+        """
+        Set the canvas size and update the simulation scale.
+
+        Args:
+            w (int): Canvas width in pixels.
+            h (int): Canvas height in pixels.
+        """
         print(f"Canvas size: {w} x {h}")
         self.canvas_width = w
         self.canvas_height = h
         self.update_scale()
 
     @Slot(float, float)
-    def veleocity_changed(self, min, max):
+    def veleocity_changed(self, min: float, max: float) -> None:
+        """
+        Update the minimum and maximum velocity for new balls.
+
+        Args:
+            min (float): Minimum velocity.
+            max (float): Maximum velocity.
+        """
         self.min_velocity = min
         self.max_velocity = max
 
     @Slot(int, int)
-    def on_canvas_mouse_moved(self, x, y):
-        """Handle canvas click events to create a new ball at the clicked position."""
+    def on_canvas_mouse_moved(self, x: int, y: int) -> None:
+        """
+        Handle canvas mouse move events to update the mouse_ball's position and velocity.
+
+        Args:
+            x (int): X coordinate in canvas pixels.
+            y (int): Y coordinate in canvas pixels.
+        """
         print(f"Canvas clicked at: {x}, {y}")
         # Convert canvas coordinates to simulation coordinates
-        # also calculate a new velocity based on the position
         last_pos = self.mouse_ball.pos
         new_pos = Vec2(x / self.c_scale, (self.canvas_height - y) / self.c_scale)
 
@@ -154,7 +202,13 @@ class Backend(QObject):
         print(self.mouse_ball.velocity)
 
     @Slot(int)
-    def on_num_balls_changed(self, count):
+    def on_num_balls_changed(self, count: int) -> None:
+        """
+        Update the number of balls in the simulation.
+
+        Args:
+            count (int): The new number of balls.
+        """
         self.num_balls = count
         ball_count = len(self.balls)
         if ball_count < self.num_balls:
@@ -164,28 +218,55 @@ class Backend(QObject):
             self.balls = self.balls[: self.num_balls]
 
     @Slot(int)
-    def on_integration_method_changed(self, index):
+    def on_integration_method_changed(self, index: int) -> None:
+        """
+        Update the integration method.
+
+        Args:
+            index (int): Index of the integration method (see IntegrationMode).
+        """
         print(f"Integration method changed to: {IntegrationMode(index).name}")
         self.integration_method = index
 
     @Slot(int)
-    def on_integration_steps_changed(self, int):
-        print(f"Integration steps changed to: {int}")
-        self.num_steps = int
+    def on_integration_steps_changed(self, steps: int) -> None:
+        """
+        Update the number of integration steps.
+
+        Args:
+            steps (int): Number of integration steps.
+        """
+        print(f"Integration steps changed to: {steps}")
+        self.num_steps = steps
 
     @Slot(float)
-    def on_restitution_changed(self, value):
+    def on_restitution_changed(self, value: float) -> None:
+        """
+        Update the restitution coefficient for collisions.
+
+        Args:
+            value (float): Restitution coefficient.
+        """
         print(f"Restitution: {value}")
         self.restitution = value
 
     @Slot(float, float)
-    def on_radius_range_changed(self, min, max):
+    def on_radius_range_changed(self, min: float, max: float) -> None:
+        """
+        Update the minimum and maximum radius for new balls.
+
+        Args:
+            min (float): Minimum radius.
+            max (float): Maximum radius.
+        """
         self.min_radius = min
         self.max_radius = max
         print(f"Radius range changed to: {self.min_radius} - {self.max_radius}")
 
-    def push_to_qml(self):
-        # Only the data needed for drawing
+    def push_to_qml(self) -> None:
+        """
+        Push the current state of all balls to the QML frontend for rendering.
+        """
         values = []
         for ball in self.balls:
             x = self.canvas_x(ball.pos)
@@ -199,20 +280,26 @@ class Backend(QObject):
             values.append({"x": x, "y": y, "r": radius, "color": self.mouse_ball.colour.name()})
         self.root.setProperty("balls", values)
 
-    def animate(self):
+    def animate(self) -> None:
+        """
+        Advance the simulation by one frame and update the QML frontend.
+        """
         current_time = self.elapsed_timer.elapsed()  # milliseconds
         dt = (current_time - self.last_time) / 1000.0  # convert ms to seconds
         self.last_time = current_time
         self.simulate(dt)
         self.push_to_qml()
 
-    def simulate(self, dt):
+    def simulate(self, dt: float) -> None:
+        """
+        Simulate the motion and collisions of all balls for a given time step.
+
+        Args:
+            dt (float): Time step in seconds.
+        """
         for i in range(len(self.balls)):
             ball1 = self.balls[i]
-
-            # Update the ball's position and velocity based on the integration methodmo
             mode = list(IntegrationMode)
-
             ball1.update(dt, mode[self.integration_method], self.num_steps)
 
             for j in range(i + 1, len(self.balls)):
@@ -227,7 +314,7 @@ class Backend(QObject):
 
     def check_bounds(self) -> None:
         """
-        Check if the ball is out of bounds and adjust its position and velocity accordingly.
+        Check if the balls are out of bounds and adjust their positions and velocities accordingly.
         """
 
         def check_ball(ball: Ball) -> None:
@@ -256,6 +343,7 @@ class Backend(QObject):
     def handle_ball_collisions(self, ball1: Ball, ball2: Ball) -> None:
         """
         Handle collisions between two balls by adjusting their positions and velocities.
+
         Args:
             ball1 (Ball): The first ball involved in the collision.
             ball2 (Ball): The second ball involved in the collision.
@@ -277,21 +365,42 @@ class Backend(QObject):
         ball1.velocity += dir * (new_v1 - v1)
         ball2.velocity += dir * (new_v2 - v2)
 
-    def canvas_x(self, pos) -> float:
-        """Convert a position in the simulation to canvas x-coordinate."""
+    def canvas_x(self, pos: Vec2) -> float:
+        """
+        Convert a position in the simulation to canvas x-coordinate.
+
+        Args:
+            pos (Vec2): The simulation position.
+
+        Returns:
+            float: The x-coordinate on the canvas.
+        """
         return pos.x * self.c_scale
 
-    def canvas_y(self, pos) -> float:
-        """Convert a position in the simulation to canvas y-coordinate."""
+    def canvas_y(self, pos: Vec2) -> float:
+        """
+        Convert a position in the simulation to canvas y-coordinate.
+
+        Args:
+            pos (Vec2): The simulation position.
+
+        Returns:
+            float: The y-coordinate on the canvas.
+        """
         return self.canvas_height - pos.y * self.c_scale
 
     def update_scale(self) -> None:
-        """Update the simulation scale based on the current canvas size."""
-        # Use the canvas size, not the window size
+        """
+        Update the simulation scale based on the current canvas size.
+        """
         self.c_scale = min(self.canvas_width / self.sim_width, self.canvas_height / self.sim_height)
 
 
 if __name__ == "__main__":
+    """
+    Main entry point for the simulation application.
+    Sets up the QApplication, QML engine, backend, and animation loop.
+    """
     app = QApplication(sys.argv)
     engine = QQmlApplicationEngine()
     backend = Backend(None)
