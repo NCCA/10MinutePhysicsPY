@@ -4,12 +4,9 @@ version = "0.1.0"
 description = "My version of the 10 minute physics demos"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = [
-    "nccapy>=0.1.7",
- "pyside6>=6.9.0",
-]
+dependencies = ["nccapy>=0.1.7", "pyside6>=6.9.0"]
 
 [tool.uv.workspace]
-members = ["cannonball2d", "ballcollision2d"]
+members = ["cannonball2d", "ballcollision2d", "QMLTesst"]
 
 exclude = ["pages"]

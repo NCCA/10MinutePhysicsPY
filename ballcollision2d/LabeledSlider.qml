@@ -13,6 +13,7 @@ ColumnLayout {
     Label {
         id: label
         text: "Label"
+        Layout.alignment: Qt.AlignHCenter
     }
     Slider {
         id: slider

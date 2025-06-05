@@ -98,31 +98,32 @@ class Backend(QObject):
         self.last_time = self.elapsed_timer.elapsed()  # milliseconds
         self.restitution = 1.0
         self.c_scale = min(self.canvas_width, self.canvas_height) / self.sim_width
+        self.min_radius = 0.1
+        self.max_radius = 1.0
+        self.min_velocity = -5.0
+        self.max_velocity = 5.0
         self.setup_scene()
         self.num_steps = 1  # Number of substeps for collision handling
         self.integration_method = 0  # Default integration method
+        self.mouse_ball = Ball(1.0, math.pi * 2**2, Vec2(0, 0), Vec2(0, 0))
 
+    def _create_ball(self) -> Ball:
+        """Create a new ball with random properties."""
+        radius = random.uniform(self.min_radius, self.max_radius)
+        mass = math.pi * radius**2
+        pos = Vec2(random.uniform(radius, self.sim_width - radius), random.uniform(radius, self.sim_height - radius))
+        vel = Vec2(
+            random.uniform(self.min_velocity, self.max_velocity), random.uniform(self.min_velocity, self.max_velocity)
+        )
+        return Ball(radius, mass, pos, vel)
+
+    @Slot()
     def setup_scene(self) -> None:
         """Set up the initial scene with a specified number of balls taken from the UI"""
         self.balls.clear()
 
         for _ in range(self.num_balls):
-            radius = random.uniform(0.2, 1.0)
-            mass = math.pi * radius**2
-            pos = Vec2(
-                random.uniform(radius, self.sim_width - radius), random.uniform(radius, self.sim_height - radius)
-            )
-            vel = Vec2(random.uniform(-5.0, 5.0), random.uniform(-5.0, 5.0))
-            self.balls.append(Ball(radius, mass, pos, vel))
-
-    @Slot()
-    def onButtonClicked(self):
-        print("Button clicked!")
-
-    @Slot()
-    def reset_simulation(self):
-        print("Reset clicked!")
-        self.setup_scene()
+            self.balls.append(self._create_ball())
 
     @Slot(int, int)
     def set_canvas_size(self, w, h):
@@ -131,10 +132,36 @@ class Backend(QObject):
         self.canvas_height = h
         self.update_scale()
 
+    @Slot(float, float)
+    def veleocity_changed(self, min, max):
+        self.min_velocity = min
+        self.max_velocity = max
+
+    @Slot(int, int)
+    def on_canvas_mouse_moved(self, x, y):
+        """Handle canvas click events to create a new ball at the clicked position."""
+        print(f"Canvas clicked at: {x}, {y}")
+        # Convert canvas coordinates to simulation coordinates
+        # also calculate a new velocity based on the position
+        last_pos = self.mouse_ball.pos
+        new_pos = Vec2(x / self.c_scale, (self.canvas_height - y) / self.c_scale)
+
+        sim_x = x / self.c_scale
+        sim_y = (self.canvas_height - y) / self.c_scale
+        self.mouse_ball.pos = Vec2(sim_x, sim_y)
+        # Calculate a new velocity based on the position
+        self.mouse_ball.velocity = (last_pos - new_pos) * 10  # Scale the velocity for better interaction
+        print(self.mouse_ball.velocity)
+
     @Slot(int)
     def on_num_balls_changed(self, count):
-        print(f"Circle count: {int(count)}")
         self.num_balls = count
+        ball_count = len(self.balls)
+        if ball_count < self.num_balls:
+            for _ in range(self.num_balls - ball_count):
+                self.balls.append(self._create_ball())
+        elif ball_count > self.num_balls:
+            self.balls = self.balls[: self.num_balls]
 
     @Slot(int)
     def on_integration_method_changed(self, index):
@@ -151,6 +178,12 @@ class Backend(QObject):
         print(f"Restitution: {value}")
         self.restitution = value
 
+    @Slot(float, float)
+    def on_radius_range_changed(self, min, max):
+        self.min_radius = min
+        self.max_radius = max
+        print(f"Radius range changed to: {self.min_radius} - {self.max_radius}")
+
     def push_to_qml(self):
         # Only the data needed for drawing
         values = []
@@ -159,7 +192,11 @@ class Backend(QObject):
             y = self.canvas_y(ball.pos)
             radius = ball.radius * self.c_scale
             values.append({"x": x, "y": y, "r": radius, "color": ball.colour.name()})
-
+        if self.mouse_ball:
+            x = self.canvas_x(self.mouse_ball.pos)
+            y = self.canvas_y(self.mouse_ball.pos)
+            radius = self.mouse_ball.radius * self.c_scale
+            values.append({"x": x, "y": y, "r": radius, "color": self.mouse_ball.colour.name()})
         self.root.setProperty("balls", values)
 
     def animate(self):
@@ -167,7 +204,6 @@ class Backend(QObject):
         dt = (current_time - self.last_time) / 1000.0  # convert ms to seconds
         self.last_time = current_time
         self.simulate(dt)
-
         self.push_to_qml()
 
     def simulate(self, dt):
@@ -183,13 +219,18 @@ class Backend(QObject):
                 ball2 = self.balls[j]
                 self.handle_ball_collisions(ball1, ball2)
         self.check_bounds()
+        if self.mouse_ball:
+            # Check for collisions with other balls
+            self.mouse_ball.update(dt, mode[self.integration_method], self.num_steps)
+            for ball in self.balls:
+                self.handle_ball_collisions(self.mouse_ball, ball)
 
     def check_bounds(self) -> None:
         """
         Check if the ball is out of bounds and adjust its position and velocity accordingly.
         """
 
-        for ball in self.balls:
+        def check_ball(ball: Ball) -> None:
             # Left edge
             if ball.pos.x - ball.radius < 0:
                 ball.pos.x = ball.radius
@@ -206,6 +247,11 @@ class Backend(QObject):
             if ball.pos.y + ball.radius > self.sim_height:
                 ball.pos.y = self.sim_height - ball.radius
                 ball.velocity.y *= -1
+
+        for ball in self.balls:
+            check_ball(ball)
+        if self.mouse_ball:
+            check_ball(self.mouse_ball)
 
     def handle_ball_collisions(self, ball1: Ball, ball2: Ball) -> None:
         """
@@ -251,7 +297,7 @@ if __name__ == "__main__":
     backend = Backend(None)
     engine.rootContext().setContextProperty("backend", backend)
 
-    engine.load(QUrl("main.qml"))
+    engine.load(QUrl("UI.qml"))
     if not engine.rootObjects():
         sys.exit(-1)
 

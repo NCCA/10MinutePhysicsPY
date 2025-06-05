@@ -199,7 +199,6 @@ class Simulation(QMainWindow):
         dt = (current_time - self.last_time) / 1000.0  # convert ms to seconds
         self.last_time = current_time
         self.simulate(dt)
-        self.canvas.update()
 
     def simulate(self, dt):
         """Simulate the motion of the balls in the simulation with per-substep collision handling."""
@@ -219,6 +218,7 @@ class Simulation(QMainWindow):
 
             # Check bounds for each ball after collisions
             self.check_bounds()
+        self.canvas.update()
 
     def check_bounds(self) -> None:
         """

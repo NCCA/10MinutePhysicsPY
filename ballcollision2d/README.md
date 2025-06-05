@@ -12,3 +12,8 @@ There is now a choice of integration methods and you can set the number of sub s
 
 
 [billiardPt3.py](billiardPt3.py) This demo adds a more accurate collision detection and response system by checking the collisions after each sub step. This is a more accurate method, but it is also slower.
+
+[billiardQML.py](billiardQML.py) This demo uses QML to create the user interface. This was an experiment to see how easy it would be to use QML with the existing code. It took a while but works quite well. The design of the system is a little different to the previous demos, but it is still based on the same principles. The QML interface has several re-usable components, to make the UI design easier. There is also a greater reliance on Slots as the QML properties are not directly accessible from Python. 
+
+There is also the ability to use the mouse to drag the balls around, this is done by using a QML MouseArea and sending the position of the mouse to the Python code. The Python code then updates the position of the ball based on the mouse position.
+
