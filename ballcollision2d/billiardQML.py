@@ -198,7 +198,11 @@ class Backend(QObject):
         sim_y = (self.canvas_height - y) / self.c_scale
         self.mouse_ball.pos = Vec2(sim_x, sim_y)
         # Calculate a new velocity based on the position
-        self.mouse_ball.velocity = (last_pos - new_pos) * 10  # Scale the velocity for better interaction
+        vel = new_pos - last_pos  # Scale the velocity for better interaction
+        vel.normalize()
+        vel *= 5.0
+        self.mouse_ball.velocity = vel  # Scale down the velocity for smoother interaction
+
         print(self.mouse_ball.velocity)
 
     @Slot(int)
