@@ -1,9 +1,0 @@
-[project]
-name = "BallCollisions2D"
-version = "0.1.0"
-description = "demos from 10 minute physics"
-readme = "README.md"
-requires-python = ">=3.13"
-dependencies = [
-    "pyside6>=6.9.0",
-]

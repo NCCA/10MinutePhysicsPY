@@ -19,7 +19,8 @@ To install the pre-requisites. Each of the individual demos can be run using ./<
 ./cannonball2d.py
 ```
 
-1. [Cannonball 2D](cannonball2d/)
+1. [Cannonball 2D](01-cannonball2d/)
 2. This VR demo is not implemented.
-3. [Ball collision handling in 2d](ballcollision2d/)
-4. [Pinball](pinball/)
+3. [Ball collision handling in 2d](03-ballcollision2d/)
+4. [Pinball](04-pinball/)
+5. [Beads](05-beads/)
