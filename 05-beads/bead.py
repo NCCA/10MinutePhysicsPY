@@ -8,7 +8,7 @@ from PySide6.QtCore import QElapsedTimer, Qt
 from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen
 from PySide6.QtWidgets import QApplication, QMainWindow
 
-GRAVITY = Vec2(0.0, -10.0)  # Gravity vector
+GRAVITY = Vec2(0.0, -9.87)  # Gravity vector
 
 
 class Bead:
@@ -36,8 +36,9 @@ class Bead:
         return _lambda
 
     def end_step(self, dt):
-        self.velocity = self.pos - self.previous_pos
-        self.velocity.normalize()
+        # self.velocity = self.pos - self.previous_pos
+        # self.velocity.normalize()
+        self.velocity = (self.pos - self.previous_pos) * (1.0 / dt)
 
 
 class AnalyticBead:
@@ -120,7 +121,7 @@ class Simulation(QMainWindow):
             self.bead.start_step(sdt)
             self.bead.keep_on_wire(self.wire_center, self.wire_radius)
             # force = math.fabs(_lambda / sdt / sdt)
-            self.bead.end_step(dt)
+            self.bead.end_step(sdt)
             self.analytic_bead.simulate(sdt, -GRAVITY.y)
 
     def timerEvent(self, event):
