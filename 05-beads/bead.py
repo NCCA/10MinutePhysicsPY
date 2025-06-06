@@ -6,7 +6,7 @@ import sys
 from nccapy.Math.Vec2 import Vec2
 from PySide6.QtCore import QElapsedTimer, Qt
 from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen
-from PySide6.QtWidgets import QApplication, QMainWindow
+from PySide6.QtWidgets import QApplication, QHBoxLayout, QMainWindow, QPushButton, QVBoxLayout, QWidget
 
 GRAVITY = Vec2(0.0, -9.87)  # Gravity vector
 
@@ -61,15 +61,54 @@ class AnalyticBead:
         return Vec2(math.sin(self.angle) * self.radius, -math.cos(self.angle) * self.radius)
 
 
+class SimulationCanvas(QWidget):
+    """
+    A QWidget subclass that serves as the drawing canvas for the billiard simulation.
+    Delegates painting and resizing logic to the Simulation instance.
+    """
+
+    def __init__(self, simulation: "Simulation") -> None:
+        """
+        Initialize the SimulationCanvas.
+
+        Args:
+            simulation (Simulation): The simulation logic/controller instance.
+        """
+        super().__init__()
+        self.simulation = simulation
+
+    def paintEvent(self, event) -> None:
+        """
+        Handle the paint event for the canvas.
+
+        Args:
+            event (QPaintEvent): The paint event object.
+        """
+        painter = QPainter(self)
+        self.simulation.draw_simulation(painter)
+        painter.end()
+
+    def resizeEvent(self, event) -> None:
+        """
+        Handle the resize event for the canvas and update the simulation scale.
+
+        Args:
+            event (QResizeEvent): The resize event object.
+        """
+        self.simulation.update_scale()
+        super().resizeEvent(event)
+
+
 class Simulation(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Bead from 10 Minute Physics")
         self.resize(1024, 720)
+        self.create_ui()
         self.sim_min_width = 2.0
-        self.c_scale = min(self.width(), self.height()) / self.sim_min_width
-        self.sim_width = self.width() / self.c_scale
-        self.sim_height = self.height() / self.c_scale
+        self.c_scale = min(self.canvas.width(), self.canvas.height()) / self.sim_min_width
+        self.sim_width = self.canvas.width() / self.c_scale
+        self.sim_height = self.canvas.height() / self.c_scale
         self.elapsed_timer = QElapsedTimer()
         self.elapsed_timer.start()
         self.last_time = self.elapsed_timer.elapsed()  # milliseconds
@@ -81,6 +120,36 @@ class Simulation(QMainWindow):
         self.wire_center = Vec2(0, 0)
         self.wire_radius = 0.0
         self.reset_scene()
+
+    def create_ui(self):
+        # --- Layout with controls above canvas ---
+        main_widget = QWidget()
+        main_layout = QVBoxLayout(main_widget)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        controls_layout = QHBoxLayout()
+        controls_layout.setContentsMargins(10, 10, 10, 0)
+        controls_layout.setSpacing(10)
+
+        reset_button = QPushButton("Reset")
+        # reset_button.clicked.connect(self.setup_scene)
+        controls_layout.addWidget(reset_button)
+        run_button = QPushButton("Run")
+        # reset_button.clicked.connect(self.setup_scene)
+        controls_layout.addWidget(run_button)
+        step_button = QPushButton("Step")
+        # reset_button.clicked.connect(self.setup_scene)
+        controls_layout.addWidget(step_button)
+        # self.pdb_label = QLabel("PDB ")
+        # controls_layout.addWidget(self.pdb_label)
+        # self.analytic_label = QLabel("Analytic ")
+        # controls_layout.addWidget(self.analytic_label)
+        controls_layout.addStretch()
+
+        main_layout.addLayout(controls_layout)
+        self.canvas = SimulationCanvas(self)
+        main_layout.addWidget(self.canvas)
+
+        self.setCentralWidget(main_widget)
 
     def reset_scene(self):
         self.wire_center.x = self.sim_width / 2.0
@@ -100,9 +169,9 @@ class Simulation(QMainWindow):
 
     def update_scale(self):
         """Update the scale based on the current window size."""
-        self.c_scale = min(self.width() / self.sim_width, self.height() / self.sim_height)
-        self.sim_width = self.width() / self.c_scale
-        self.sim_height = self.height() / self.c_scale
+        self.c_scale = min(self.canvas.width(), self.canvas.height()) / self.sim_min_width
+        self.sim_width = self.canvas.width() / self.c_scale
+        self.sim_height = self.canvas.height() / self.c_scale
 
     def resizeEvent(self, event):
         self.update_scale()
@@ -134,12 +203,10 @@ class Simulation(QMainWindow):
         self.simulate(dt)
         self.last_time = current_time
         # call redraw of the Simulation
-        self.update()
+        self.canvas.update()
 
-    def paintEvent(self, event):
+    def draw_simulation(self, painter):
         """This is where the drawing is done"""
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing)
         # self.draw_circle(painter, self.ball)
         self.draw_circle(painter, self.wire_center, self.wire_radius, QColor(0, 0, 0))
         # draw beads
@@ -149,7 +216,7 @@ class Simulation(QMainWindow):
         self.draw_circle(painter, self.bead.pos, self.bead.radius, QColor(255, 0, 0), True)
         self.draw_circle(painter, pos, self.analytic_bead.bead_radius, QColor(0, 255, 0), True)
 
-        self.draw_text(painter, "Bead Press R to reset", 10, 20, 16, QColor(0, 0, 0))
+        # self.draw_text(painter, "Bead Press R to reset", 10, 20, 16, QColor(0, 0, 0))
 
     def draw_circle(self, painter, position, radius, colour, filled=False):
         """Draw a circle representing the ball on the Simulation."""
