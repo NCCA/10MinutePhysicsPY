@@ -83,13 +83,12 @@ class Flipper:
         except ZeroDivisionError:
             pass
 
-    def select(self, pos: Vec2): ...
-
     def get_tip(self):
-        angle = self.rest_angle + self.sign + self.rotation
-        dir = Vec2(math.cos(angle), math.sin(angle))
-        tip = self.pos.clone()
-        return tip + dir * self.length
+        # Assuming the flipper rotates around self.pos and lies along the +x axis at rest
+        angle = self.rest_angle + self.sign * self.rotation
+        dx = math.cos(angle) * self.length
+        dy = math.sin(angle) * self.length
+        return self.pos + Vec2(dx, dy)
 
 
 class Ball:
@@ -235,8 +234,8 @@ class Simulation(QMainWindow):
         rest_angle = 0.5
         angular_velocity = 10.0
         restitution = 0.0
-        pos1 = Vec2(0.26, 0.215)
-        pos2 = Vec2(0.74, 0.215)
+        pos1 = Vec2(0.26, 0.22)
+        pos2 = Vec2(0.74, 0.22)
         self.flippers.append(Flipper(radius, pos1, length, -rest_angle, max_rotation, angular_velocity, restitution))
         self.flippers.append(
             Flipper(radius, pos2, length, math.pi + rest_angle, -max_rotation, angular_velocity, restitution)
@@ -292,6 +291,7 @@ class Simulation(QMainWindow):
     def simulate(self, dt):
         for flipper in self.flippers:
             flipper.simulate(dt)
+
         for i in range(len(self.balls)):
             ball = self.balls[i]
             ball.simulate(dt)
