@@ -43,7 +43,9 @@ class Ball:
         self.velocity: Vec2 = vel.clone()
         self.radius: float = radius
         self.mass: float = mass
-        self.colour: QColor = QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        self.colour: QColor = QColor(
+            random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
+        )
 
     def update(self, dt: float, integration_mode: Enum, num_steps: int) -> None:
         """
@@ -59,12 +61,16 @@ class Ball:
                 self.velocity += GRAVITY * dt
                 self.pos += self.velocity * dt
             case IntegrationMode.SEMI_IMPLICIT:
-                sdt = dt / num_steps  # Divide the time step into smaller steps for better accuracy
+                sdt = (
+                    dt / num_steps
+                )  # Divide the time step into smaller steps for better accuracy
                 for _ in range(num_steps):
                     self.velocity += GRAVITY * sdt
                     self.pos += self.velocity * sdt
             case IntegrationMode.RK4:
-                sdt = dt / num_steps  # Divide the time step into smaller steps for better accuracy
+                sdt = (
+                    dt / num_steps
+                )  # Divide the time step into smaller steps for better accuracy
                 # note this is a simple RK4 as gravity is constant
                 for _ in range(num_steps):
                     # k1
@@ -120,7 +126,9 @@ class Backend(QObject):
         self.elapsed_timer.start()
         self.last_time: int = self.elapsed_timer.elapsed()  # milliseconds
         self.restitution: float = 1.0
-        self.c_scale: float = min(self.canvas_width, self.canvas_height) / self.sim_width
+        self.c_scale: float = (
+            min(self.canvas_width, self.canvas_height) / self.sim_width
+        )
         self.min_radius: float = 0.1
         self.max_radius: float = 1.0
         self.min_velocity: float = -5.0
@@ -139,9 +147,13 @@ class Backend(QObject):
         """
         radius = random.uniform(self.min_radius, self.max_radius)
         mass = math.pi * radius**2
-        pos = Vec2(random.uniform(radius, self.sim_width - radius), random.uniform(radius, self.sim_height - radius))
+        pos = Vec2(
+            random.uniform(radius, self.sim_width - radius),
+            random.uniform(radius, self.sim_height - radius),
+        )
         vel = Vec2(
-            random.uniform(self.min_velocity, self.max_velocity), random.uniform(self.min_velocity, self.max_velocity)
+            random.uniform(self.min_velocity, self.max_velocity),
+            random.uniform(self.min_velocity, self.max_velocity),
         )
         return Ball(radius, mass, pos, vel)
 
@@ -201,7 +213,9 @@ class Backend(QObject):
         vel = new_pos - last_pos  # Scale the velocity for better interaction
         vel.normalize()
         vel *= 5.0
-        self.mouse_ball.velocity = vel  # Scale down the velocity for smoother interaction
+        self.mouse_ball.velocity = (
+            vel  # Scale down the velocity for smoother interaction
+        )
 
         print(self.mouse_ball.velocity)
 
@@ -281,7 +295,9 @@ class Backend(QObject):
             x = self.canvas_x(self.mouse_ball.pos)
             y = self.canvas_y(self.mouse_ball.pos)
             radius = self.mouse_ball.radius * self.c_scale
-            values.append({"x": x, "y": y, "r": radius, "color": self.mouse_ball.colour.name()})
+            values.append(
+                {"x": x, "y": y, "r": radius, "color": self.mouse_ball.colour.name()}
+            )
         self.root.setProperty("balls", values)
 
     def animate(self) -> None:
@@ -397,7 +413,9 @@ class Backend(QObject):
         """
         Update the simulation scale based on the current canvas size.
         """
-        self.c_scale = min(self.canvas_width / self.sim_width, self.canvas_height / self.sim_height)
+        self.c_scale = min(
+            self.canvas_width / self.sim_width, self.canvas_height / self.sim_height
+        )
 
 
 if __name__ == "__main__":

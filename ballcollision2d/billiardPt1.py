@@ -7,7 +7,16 @@ import sys
 from nccapy.Math.Vec2 import Vec2
 from PySide6.QtCore import QElapsedTimer, Qt
 from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen
-from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QMainWindow, QPushButton, QSlider, QVBoxLayout, QWidget
+from PySide6.QtWidgets import (
+    QApplication,
+    QHBoxLayout,
+    QLabel,
+    QMainWindow,
+    QPushButton,
+    QSlider,
+    QVBoxLayout,
+    QWidget,
+)
 
 GRAVITY = Vec2(0.0, 0.0)  # Gravity vector
 
@@ -23,7 +32,9 @@ class Ball:
         self.velocity = vel.clone()
         self.radius = radius
         self.mass = mass
-        self.colour = QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        self.colour = QColor(
+            random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
+        )
 
     def update(self, dt: float) -> None:
         self.velocity += GRAVITY * dt
@@ -131,7 +142,8 @@ class Simulation(QMainWindow):
             radius = random.uniform(0.2, 1.0)
             mass = math.pi * radius**2
             pos = Vec2(
-                random.uniform(radius, self.sim_width - radius), random.uniform(radius, self.sim_height - radius)
+                random.uniform(radius, self.sim_width - radius),
+                random.uniform(radius, self.sim_height - radius),
             )
             vel = Vec2(random.uniform(-5.0, 5.0), random.uniform(-5.0, 5.0))
             self.balls.append(Ball(radius, mass, pos, vel))
@@ -146,7 +158,9 @@ class Simulation(QMainWindow):
         # Use the canvas size, not the window size
         canvas_width = self.canvas.width()
         canvas_height = self.canvas.height()
-        self.c_scale = min(canvas_width / self.sim_width, canvas_height / self.sim_height)
+        self.c_scale = min(
+            canvas_width / self.sim_width, canvas_height / self.sim_height
+        )
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
@@ -223,7 +237,9 @@ class Simulation(QMainWindow):
         x = self.canvas_x(ball.pos)
         y = self.canvas_y(ball.pos)
         radius = ball.radius * self.c_scale
-        painter.drawEllipse(int(x - radius), int(y - radius), int(radius * 2), int(radius * 2))
+        painter.drawEllipse(
+            int(x - radius), int(y - radius), int(radius * 2), int(radius * 2)
+        )
 
     def draw_text(self, painter, text, x, y, size, colour, font="Arial"):
         painter.setPen(colour)

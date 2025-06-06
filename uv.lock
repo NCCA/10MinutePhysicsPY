@@ -7,7 +7,7 @@ members = [
     "10minutephysicsdemos",
     "ballcollisions2d",
     "cannomball2d",
-    "qmltest",
+    "pinball",
 ]
 
 [[package]]
@@ -120,6 +120,17 @@ wheels = [
 ]
 
 [[package]]
+name = "pinball"
+version = "0.1.0"
+source = { virtual = "pinball" }
+dependencies = [
+    { name = "pyside6" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "pyside6", specifier = ">=6.9.0" }]
+
+[[package]]
 name = "pygame"
 version = "2.6.1"
 source = { registry = "https://pypi.org/simple" }
@@ -181,17 +192,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/0d/a9/a8e0209ba9116f2c2db990cfb79f2edbd5a3a428013be2df1f1cddd660a9/PySide6_Essentials-6.9.1-cp39-abi3-win_amd64.whl", hash = "sha256:ad1ac94011492dba33051bc33db1c76a7d6f815a81c01422cb6220273b369145", size = 72435676, upload-time = "2025-06-03T13:13:08.805Z" },
     { url = "https://files.pythonhosted.org/packages/d0/e4/23268c57e775a1a4d2843d288a9583a47f2e4b3977a9ae93cb9ded1a4ea5/PySide6_Essentials-6.9.1-cp39-abi3-win_arm64.whl", hash = "sha256:35c2c2bb4a88db74d11e638cf917524ff35785883f10b439ead07960a5733aa4", size = 49483707, upload-time = "2025-06-03T13:13:16.399Z" },
 ]
-
-[[package]]
-name = "qmltest"
-version = "0.1.0"
-source = { virtual = "QMLTesst" }
-dependencies = [
-    { name = "pyside6" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "pyside6", specifier = ">=6.9.0" }]
 
 [[package]]
 name = "shiboken6"

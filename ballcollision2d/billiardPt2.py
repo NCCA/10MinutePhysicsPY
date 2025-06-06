@@ -32,7 +32,9 @@ class Ball:
         self.velocity = vel.clone()
         self.radius = radius
         self.mass = mass
-        self.colour = QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        self.colour = QColor(
+            random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
+        )
 
     def update(self, dt: float, integration_mode: Enum, num_steps: int) -> None:
         """
@@ -47,12 +49,16 @@ class Ball:
                 self.velocity += GRAVITY * dt
                 self.pos += self.velocity * dt
             case IntegrationMode.SEMI_IMPLICIT:
-                sdt = dt / num_steps  # Divide the time step into smaller steps for better accuracy
+                sdt = (
+                    dt / num_steps
+                )  # Divide the time step into smaller steps for better accuracy
                 for _ in range(num_steps):
                     self.velocity += GRAVITY * sdt
                     self.pos += self.velocity * sdt
             case IntegrationMode.RK4:
-                sdt = dt / num_steps  # Divide the time step into smaller steps for better accuracy
+                sdt = (
+                    dt / num_steps
+                )  # Divide the time step into smaller steps for better accuracy
                 # note this is a simple RK4 as gravity is constant
                 for _ in range(num_steps):
                     # k1
@@ -181,7 +187,8 @@ class Simulation(QMainWindow):
             radius = random.uniform(0.2, 1.0)
             mass = math.pi * radius**2
             pos = Vec2(
-                random.uniform(radius, self.sim_width - radius), random.uniform(radius, self.sim_height - radius)
+                random.uniform(radius, self.sim_width - radius),
+                random.uniform(radius, self.sim_height - radius),
             )
             vel = Vec2(random.uniform(-5.0, 5.0), random.uniform(-5.0, 5.0))
             self.balls.append(Ball(radius, mass, pos, vel))
@@ -199,7 +206,9 @@ class Simulation(QMainWindow):
         # Use the canvas size, not the window size
         canvas_width = self.canvas.width()
         canvas_height = self.canvas.height()
-        self.c_scale = min(canvas_width / self.sim_width, canvas_height / self.sim_height)
+        self.c_scale = min(
+            canvas_width / self.sim_width, canvas_height / self.sim_height
+        )
 
     def keyPressEvent(self, event) -> None:
         """Handle key press events for the simulation."""
@@ -227,7 +236,9 @@ class Simulation(QMainWindow):
             # Update the ball's position and velocity based on the integration methodmo
             mode = list(IntegrationMode)
 
-            ball1.update(dt, mode[self.integration_method.currentIndex()], self.num_steps.value())
+            ball1.update(
+                dt, mode[self.integration_method.currentIndex()], self.num_steps.value()
+            )
 
             for j in range(i + 1, len(self.balls)):
                 ball2 = self.balls[j]
@@ -304,7 +315,9 @@ class Simulation(QMainWindow):
         x = self.canvas_x(ball.pos)
         y = self.canvas_y(ball.pos)
         radius = ball.radius * self.c_scale
-        painter.drawEllipse(int(x - radius), int(y - radius), int(radius * 2), int(radius * 2))
+        painter.drawEllipse(
+            int(x - radius), int(y - radius), int(radius * 2), int(radius * 2)
+        )
 
 
 if __name__ == "__main__":

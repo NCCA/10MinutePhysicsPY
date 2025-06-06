@@ -7,6 +7,6 @@ requires-python = ">=3.12"
 dependencies = ["nccapy>=0.1.7", "pyside6>=6.9.0"]
 
 [tool.uv.workspace]
-members = ["cannonball2d", "ballcollision2d", "QMLTesst"]
+members = ["cannonball2d", "ballcollision2d", "pinball"]
 
 exclude = ["pages"]
