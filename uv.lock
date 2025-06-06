@@ -5,7 +5,7 @@ requires-python = ">=3.13"
 [manifest]
 members = [
     "10minutephysicsdemos",
-    "ballcollisions2d",
+    "beads",
     "cannomball2d",
     "pinball",
 ]
@@ -26,9 +26,9 @@ requires-dist = [
 ]
 
 [[package]]
-name = "ballcollisions2d"
+name = "beads"
 version = "0.1.0"
-source = { virtual = "ballcollision2d" }
+source = { virtual = "05-beads" }
 dependencies = [
     { name = "pyside6" },
 ]
@@ -39,7 +39,7 @@ requires-dist = [{ name = "pyside6", specifier = ">=6.9.0" }]
 [[package]]
 name = "cannomball2d"
 version = "0.1.0"
-source = { virtual = "cannonball2d" }
+source = { virtual = "01-cannonball2d" }
 dependencies = [
     { name = "pyside6" },
 ]
@@ -122,7 +122,7 @@ wheels = [
 [[package]]
 name = "pinball"
 version = "0.1.0"
-source = { virtual = "pinball" }
+source = { virtual = "04-pinball" }
 dependencies = [
     { name = "pyside6" },
 ]

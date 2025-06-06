@@ -1,0 +1,188 @@
+#!/usr/bin/env -S uv run --script
+
+import math
+import sys
+
+from nccapy.Math.Vec2 import Vec2
+from PySide6.QtCore import QElapsedTimer, Qt
+from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen
+from PySide6.QtWidgets import QApplication, QMainWindow
+
+GRAVITY = Vec2(0.0, -10.0)  # Gravity vector
+
+
+class Bead:
+    def __init__(self, radius: float, mass: float, pos: Vec2) -> None:
+        self.radius = radius
+        self.mass = mass
+        self.pos = pos.clone()
+        self.previous_pos = pos.clone()
+        self.velocity = Vec2(0, 0)
+
+    def start_step(self, dt: float) -> None:
+        self.velocity += GRAVITY * dt
+        self.previous_pos = self.pos.clone()  # .set(self.pos.x, self.pos.y)
+        self.pos += self.velocity * dt
+
+    def keep_on_wire(self, center: Vec2, radius: float) -> float:
+        dir = self.pos - center
+        len = dir.length()
+        if len == 0.0:
+            return 0.0
+        dir.normalize()
+
+        _lambda = radius - len
+        self.pos += dir * _lambda
+        return _lambda
+
+    def end_step(self, dt):
+        self.velocity = self.pos - self.previous_pos
+        self.velocity.normalize()
+
+
+class AnalyticBead:
+    def __init__(self, radius: float, bead_radius: float, mass: float, angle: float) -> None:
+        self.radius = radius
+        self.bead_radius = bead_radius
+        self.mass = mass
+        self.angle = angle
+        self.omega = 0.0
+
+    def simulate(self, dt: float, gravity_y: float) -> None:
+        acc = -gravity_y / self.radius * math.sin(self.angle)
+        self.omega += acc * dt
+        self.angle += self.omega * dt
+        centrifugal_force = self.omega * self.omega * self.radius
+        force = centrifugal_force + math.cos(self.angle) * math.fabs(gravity_y)
+        return force
+
+    def get_pos(self) -> Vec2:
+        return Vec2(math.sin(self.angle) * self.radius, -math.cos(self.angle) * self.radius)
+
+
+class Simulation(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Bead from 10 Minute Physics")
+        self.resize(1024, 720)
+        self.sim_min_width = 2.0
+        self.c_scale = min(self.width(), self.height()) / self.sim_min_width
+        self.sim_width = self.width() / self.c_scale
+        self.sim_height = self.height() / self.c_scale
+        self.elapsed_timer = QElapsedTimer()
+        self.elapsed_timer.start()
+        self.last_time = self.elapsed_timer.elapsed()  # milliseconds
+        self.startTimer(1.0 / 60.0)
+        self.num_steps = 1000
+        self.wire_center = Vec2(0, 0)
+        self.bead = None
+        self.analytic_bead = None
+        self.wire_center = Vec2(0, 0)
+        self.wire_radius = 0.0
+        self.reset_scene()
+
+    def reset_scene(self):
+        self.wire_center.x = self.sim_width / 2.0
+        self.wire_center.y = self.sim_height / 2.0
+        self.wire_radius = self.sim_min_width * 0.4
+        pos = Vec2(self.wire_center.x + self.wire_radius, self.wire_center.y)
+        self.bead = Bead(0.1, 1.0, pos)
+        self.analytic_bead = AnalyticBead(self.wire_radius, 0.1, 1.0, 0.5 * math.pi)
+
+    def Simulation_x(self, pos):
+        """Convert a position in the simulation to Simulation x-coordinate."""
+        return pos.x * self.c_scale
+
+    def Simulation_y(self, pos):
+        """Convert a position in the simulation to Simulation y-coordinate."""
+        return self.height() - pos.y * self.c_scale
+
+    def update_scale(self):
+        """Update the scale based on the current window size."""
+        self.c_scale = min(self.width() / self.sim_width, self.height() / self.sim_height)
+        self.sim_width = self.width() / self.c_scale
+        self.sim_height = self.height() / self.c_scale
+
+    def resizeEvent(self, event):
+        self.update_scale()
+        super().resizeEvent(event)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            self.close()
+        elif event.key() == Qt.Key_R:
+            # Reset the simulation
+            ...
+
+    def simulate(self, dt):
+        sdt = dt / self.num_steps
+        for _ in range(0, self.num_steps):
+            self.bead.start_step(sdt)
+            self.bead.keep_on_wire(self.wire_center, self.wire_radius)
+            # force = math.fabs(_lambda / sdt / sdt)
+            self.bead.end_step(dt)
+            self.analytic_bead.simulate(sdt, -GRAVITY.y)
+
+    def timerEvent(self, event):
+        """measure the time elapsed between updates (in seconds), which is essential for time based
+        calculations in simulations, animations, or games. It ensures that the simulation progresses
+        at a rate consistent with real time, regardless of
+        how fast or slow the update loop is running."""
+        current_time = self.elapsed_timer.elapsed()  # milliseconds
+        dt = (current_time - self.last_time) / 1000.0  # convert ms to seconds
+        self.simulate(dt)
+        self.last_time = current_time
+        # call redraw of the Simulation
+        self.update()
+
+    def paintEvent(self, event):
+        """This is where the drawing is done"""
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        # self.draw_circle(painter, self.ball)
+        self.draw_circle(painter, self.wire_center, self.wire_radius, QColor(0, 0, 0))
+        # draw beads
+        pos = self.analytic_bead.get_pos()
+        pos += self.wire_center
+
+        self.draw_circle(painter, self.bead.pos, self.bead.radius, QColor(255, 0, 0), True)
+        self.draw_circle(painter, pos, self.analytic_bead.bead_radius, QColor(0, 255, 0), True)
+
+        self.draw_text(painter, "Bead Press R to reset", 10, 20, 16, QColor(0, 0, 0))
+
+    def draw_circle(self, painter, position, radius, colour, filled=False):
+        """Draw a circle representing the ball on the Simulation."""
+        painter.setPen(QPen(colour))
+        if filled:
+            painter.setBrush(QBrush(colour))
+        else:
+            painter.setBrush(Qt.NoBrush)
+        x = self.Simulation_x(position)
+        y = self.Simulation_y(position)
+        radius = radius * self.c_scale
+        # Draw the circle
+        painter.drawEllipse(int(x - radius), int(y - radius), int(radius * 2), int(radius * 2))
+
+    def draw_text(self, painter, text, x, y, size, colour, font="Arial"):
+        """
+        Draw text on the Simulation.
+
+        Args:
+            painter (QPainter): The painter to draw with.
+            text (str): The text to draw.
+            x (int): The x-coordinate for the text.
+            y (int): The y-coordinate for the text.
+            size (int): The font size of the text.
+            colour (QColor): The colour of the text.
+            font (str): The font family of the text.
+        """
+        painter.setPen(colour)
+        painter.setFont(QFont(font, size))
+        painter.drawText(x, y, text)
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    simulation = Simulation()
+    simulation.show()
+    sys.exit(app.exec())
