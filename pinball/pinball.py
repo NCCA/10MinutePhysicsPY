@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-GRAVITY = Vec2(0.0, 0.0)  # Gravity vector
+GRAVITY = Vec2(0.0, -3.0)  # Gravity vector
 
 
 def closest_point_on_segment(p, a, b):
@@ -154,7 +154,7 @@ class SimulationCanvas(QWidget):
 class Simulation(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Billard Ball 2D from 10 Minute Physics")
+        self.setWindowTitle("Pinball 2D from 10 Minute Physics")
         self.resize(1024, 720)
         # note these values are a good aspect ratio for the simulation
         # when drawing on a 1024x720 canvas
@@ -235,14 +235,19 @@ class Simulation(QMainWindow):
         rest_angle = 0.5
         angular_velocity = 10.0
         restitution = 0.0
-        pos1 = Vec2(0.25, 0.22)
-        pos2 = Vec2(0.74, 0.22)
+        pos1 = Vec2(0.26, 0.215)
+        pos2 = Vec2(0.74, 0.215)
         self.flippers.append(Flipper(radius, pos1, length, -rest_angle, max_rotation, angular_velocity, restitution))
         self.flippers.append(
             Flipper(radius, pos2, length, math.pi + rest_angle, -max_rotation, angular_velocity, restitution)
         )
 
     def setup_scene(self):
+        self.obstacles.clear()
+        self.border.clear()
+        self.flippers.clear()
+        self.balls.clear()
+        self.score = 0
         self._create_boarder()
         self._create_balls()
         self._create_obstacles()
@@ -306,7 +311,7 @@ class Simulation(QMainWindow):
         if d == 0.0 or d > ball.radius + flipper.radius:
             return
 
-        dir = dir * (1.0 / d)  # Normalize
+        dir.normalize()
 
         corr = ball.radius + flipper.radius - d
         ball.pos += dir * corr
@@ -333,6 +338,7 @@ class Simulation(QMainWindow):
         v = ball.velocity.dot(dir)
         ball.velocity += dir * (obstacle.push_velocity - v)
         self.score += 1
+        self.score_label.setText(f"Score {self.score}")
 
     def handle_ball_ball_collision(self, ball1, ball2):
         dir = ball2.pos - ball1.pos  # Vec2 subtraction
@@ -397,7 +403,7 @@ class Simulation(QMainWindow):
 
         # update velocity
         v = ball.velocity.dot(d)
-        vnew = abs(v) * ball.restitution
+        vnew = math.fabs(v) * ball.restitution
 
         ball.velocity += d * (vnew - v)
 
