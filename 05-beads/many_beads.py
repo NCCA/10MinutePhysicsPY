@@ -84,19 +84,19 @@ class Simulation(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Bead from 10 Minute Physics")
-        self.sim_min_width = 2.0
+        self.sim_min_width = 2.5
         self.wire_center = Vec2(0, 0)
         self.wire_radius = 0.0
-        self.resize(1024, 720)
         self.load_ui()
         self.elapsed_timer = QElapsedTimer()
         self.elapsed_timer.start()
         self.last_time = self.elapsed_timer.elapsed()  # milliseconds
         self.startTimer(1.0 / 60.0)
         self.run_sim = False
-        self.resize(1024, 720)
         self.beads = []
         self.reset_scene()
+        self.resize(1024, 720)
+
 
     def load_ui(self) -> None:
         """Load the UI from a .ui file and set up the connections."""
@@ -150,22 +150,17 @@ class Simulation(QMainWindow):
                 self.wire_center.x + self.wire_radius * math.cos(angle),
                 self.wire_center.y + self.wire_radius * math.sin(angle),
             )
-            print(f"{pos=} {r=}")
 
             self.beads.append(Bead(r, mass, pos))
             angle += math.pi / self.num_beads.value()
 
-        # pos = Vec2(self.wire_center.x + self.wire_radius, self.wire_center.y)
-        # self.bead = Bead(0.1, 1.0, pos)
-        # self.analytic_bead = AnalyticBead(self.wire_radius, 0.1, 1.0, 0.5 * math.pi)
-
-    def Simulation_x(self, pos):
+    def canvas_x(self, pos):
         """Convert a position in the simulation to Simulation x-coordinate."""
         return pos.x * self.c_scale
 
-    def Simulation_y(self, pos):
+    def canvas_y(self, pos):
         """Convert a position in the simulation to Simulation y-coordinate."""
-        return self.height() - pos.y * self.c_scale
+        return self.canvas.height() - pos.y * self.c_scale
 
     def update_scale(self):
         """Update the scale based on the current window size."""
@@ -173,10 +168,6 @@ class Simulation(QMainWindow):
 
         self.sim_width = self.canvas.width() / self.c_scale
         self.sim_height = self.height() / self.c_scale
-
-    def resizeEvent(self, event):
-        self.update_scale()
-        super().resizeEvent(event)
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
@@ -251,8 +242,8 @@ class Simulation(QMainWindow):
             painter.setBrush(QBrush(colour))
         else:
             painter.setBrush(Qt.NoBrush)
-        x = self.Simulation_x(position)
-        y = self.Simulation_y(position)
+        x = self.canvas_x(position)
+        y = self.canvas_y(position)
         radius = radius * self.c_scale
         # Draw the circle
         painter.drawEllipse(int(x - radius), int(y - radius), int(radius * 2), int(radius * 2))
