@@ -20,6 +20,7 @@ class Bead:
         self.pos = pos.clone()
         self.previous_pos = pos.clone()
         self.velocity = Vec2(0, 0)
+        self.colour = QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
     def start_step(self, dt: float) -> None:
         self.velocity += GRAVITY * dt
@@ -92,7 +93,6 @@ class Simulation(QMainWindow):
         self.elapsed_timer.start()
         self.last_time = self.elapsed_timer.elapsed()  # milliseconds
         self.startTimer(1.0 / 60.0)
-        self.num_steps = 100
         self.run_sim = False
         self.resize(1024, 720)
         self.beads = []
@@ -101,7 +101,7 @@ class Simulation(QMainWindow):
     def load_ui(self) -> None:
         """Load the UI from a .ui file and set up the connections."""
         loader = QUiLoader()
-        ui_file = QFile("Bead.ui")
+        ui_file = QFile("ManyBead.ui")
         ui_file.open(QFile.ReadOnly)
         # Load the UI into `self` as the parent
         loaded_ui = loader.load(ui_file, self)
@@ -121,9 +121,9 @@ class Simulation(QMainWindow):
         self.start_button.toggled.connect(self.start_button_toggled)
         self.step_button.clicked.connect(lambda: self.simulate(1.0 / 60.0))
         self.reset_button.clicked.connect(self.reset_scene)
-        # set colours
-        self.pdb_label.setStyleSheet("color: #FF0000")
-        self.analytic_label.setStyleSheet("color: #00FF00")
+        self.num_beads.valueChanged.connect(self.reset_scene)
+        self.fixed_radius.toggled.connect(self.reset_scene)
+        self.radius.valueChanged.connect(self.reset_scene)
 
     @Slot(bool)
     def start_button_toggled(self, state: bool):
@@ -139,10 +139,12 @@ class Simulation(QMainWindow):
         self.wire_center.x = self.sim_width / 2.0
         self.wire_center.y = self.sim_height / 2.0
         self.wire_radius = self.sim_min_width * 0.4
-        self.num_beads = 5
-        r = 0.1
         angle = 0.0
-        for _ in range(0, self.num_beads):
+        for _ in range(0, self.num_beads.value()):
+            if self.fixed_radius.isChecked():
+                r = self.radius.value()
+            else:
+                r = random.uniform(0.01, 0.25)
             mass = math.pi * r * r
             pos = Vec2(
                 self.wire_center.x + self.wire_radius * math.cos(angle),
@@ -151,8 +153,7 @@ class Simulation(QMainWindow):
             print(f"{pos=} {r=}")
 
             self.beads.append(Bead(r, mass, pos))
-            angle += math.pi / self.num_beads
-            r = random.uniform(0.05, 0.2)
+            angle += math.pi / self.num_beads.value()
 
         # pos = Vec2(self.wire_center.x + self.wire_radius, self.wire_center.y)
         # self.bead = Bead(0.1, 1.0, pos)
@@ -183,21 +184,22 @@ class Simulation(QMainWindow):
             ...
 
     def simulate(self, dt):
-        sdt = dt / self.num_steps
-        for _ in range(0, self.num_steps):
+        num_steps = self.sim_steps.value()
+        sdt = dt / num_steps
+        for _ in range(0, num_steps):
             for bead in self.beads:
                 bead.start_step(sdt)
             for bead in self.beads:
                 bead.keep_on_wire(self.wire_center, self.wire_radius)
             for bead in self.beads:
                 bead.end_step(sdt)
-        for i in range(0, self.num_beads):
+        for i in range(0, self.num_beads.value()):
             for j in range(0, i):
                 self.bead_bead_collision(self.beads[i], self.beads[j])
 
     def bead_bead_collision(self, ball1, ball2):
         dir = ball2.pos - ball1.pos  # Vec2 subtraction
-        restitution = 1.0
+        restitution = self.restitution.value() / 100.0
         d = dir.length()
         if d == 0.0 or d > ball1.radius + ball2.radius:
             return
@@ -240,7 +242,7 @@ class Simulation(QMainWindow):
         # draw beads
 
         for bead in self.beads:
-            self.draw_circle(painter, bead.pos, bead.radius, QColor(255, 0, 0), True)
+            self.draw_circle(painter, bead.pos, bead.radius, bead.colour, True)
 
     def draw_circle(self, painter, position, radius, colour, filled=False):
         """Draw a circle representing the ball on the Simulation."""

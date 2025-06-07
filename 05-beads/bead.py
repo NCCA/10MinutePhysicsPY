@@ -4,9 +4,10 @@ import math
 import sys
 
 from nccapy.Math.Vec2 import Vec2
-from PySide6.QtCore import QElapsedTimer, Qt
-from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen
-from PySide6.QtWidgets import QApplication, QHBoxLayout, QMainWindow, QPushButton, QVBoxLayout, QWidget
+from PySide6.QtCore import QElapsedTimer, QFile, Qt, Slot
+from PySide6.QtGui import QBrush, QColor, QPainter, QPen
+from PySide6.QtUiTools import QUiLoader
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget
 
 GRAVITY = Vec2(0.0, -9.87)  # Gravity vector
 
@@ -36,8 +37,6 @@ class Bead:
         return _lambda
 
     def end_step(self, dt):
-        # self.velocity = self.pos - self.previous_pos
-        # self.velocity.normalize()
         self.velocity = (self.pos - self.previous_pos) * (1.0 / dt)
 
 
@@ -103,55 +102,59 @@ class Simulation(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Bead from 10 Minute Physics")
-        self.resize(1024, 720)
-        self.create_ui()
         self.sim_min_width = 2.0
-        self.c_scale = min(self.canvas.width(), self.canvas.height()) / self.sim_min_width
-        self.sim_width = self.canvas.width() / self.c_scale
-        self.sim_height = self.canvas.height() / self.c_scale
+        self.wire_center = Vec2(0, 0)
+        self.wire_radius = 0.0
+        self.resize(1024, 720)
+        self.load_ui()
         self.elapsed_timer = QElapsedTimer()
         self.elapsed_timer.start()
         self.last_time = self.elapsed_timer.elapsed()  # milliseconds
         self.startTimer(1.0 / 60.0)
         self.num_steps = 1000
-        self.wire_center = Vec2(0, 0)
         self.bead = None
         self.analytic_bead = None
-        self.wire_center = Vec2(0, 0)
-        self.wire_radius = 0.0
+        self.run_sim = False
+        self.resize(1024, 720)
         self.reset_scene()
 
-    def create_ui(self):
-        # --- Layout with controls above canvas ---
-        main_widget = QWidget()
-        main_layout = QVBoxLayout(main_widget)
-        main_layout.setContentsMargins(0, 0, 0, 0)
-        controls_layout = QHBoxLayout()
-        controls_layout.setContentsMargins(10, 10, 10, 0)
-        controls_layout.setSpacing(10)
-
-        reset_button = QPushButton("Reset")
-        # reset_button.clicked.connect(self.setup_scene)
-        controls_layout.addWidget(reset_button)
-        run_button = QPushButton("Run")
-        # reset_button.clicked.connect(self.setup_scene)
-        controls_layout.addWidget(run_button)
-        step_button = QPushButton("Step")
-        # reset_button.clicked.connect(self.setup_scene)
-        controls_layout.addWidget(step_button)
-        # self.pdb_label = QLabel("PDB ")
-        # controls_layout.addWidget(self.pdb_label)
-        # self.analytic_label = QLabel("Analytic ")
-        # controls_layout.addWidget(self.analytic_label)
-        controls_layout.addStretch()
-
-        main_layout.addLayout(controls_layout)
+    def load_ui(self) -> None:
+        """Load the UI from a .ui file and set up the connections."""
+        loader = QUiLoader()
+        ui_file = QFile("Bead.ui")
+        ui_file.open(QFile.ReadOnly)
+        # Load the UI into `self` as the parent
+        loaded_ui = loader.load(ui_file, self)
+        self.setCentralWidget(loaded_ui)
+        # add all children with object names to `self`
+        for child in loaded_ui.findChildren(QWidget):
+            name = child.objectName()
+            if name:
+                setattr(self, name, child)
+        ui_file.close()
         self.canvas = SimulationCanvas(self)
-        main_layout.addWidget(self.canvas)
+        layout = loaded_ui.layout()
+        layout.addWidget(self.canvas)
+        layout.setStretch(0, 0)
+        layout.setStretch(1, 2)
+        # connect slots
+        self.start_button.toggled.connect(self.start_button_toggled)
+        self.step_button.clicked.connect(lambda: self.simulate(1.0 / 60.0))
+        self.reset_button.clicked.connect(self.reset_scene)
+        # set colours
+        self.pdb_label.setStyleSheet("color: #FF0000")
+        self.analytic_label.setStyleSheet("color: #00FF00")
 
-        self.setCentralWidget(main_widget)
+    @Slot(bool)
+    def start_button_toggled(self, state: bool):
+        self.run_sim ^= True
+        if state:
+            self.start_button.setText("Stop")
+        else:
+            self.start_button.setText("Start")
 
     def reset_scene(self):
+        self.update_scale()
         self.wire_center.x = self.sim_width / 2.0
         self.wire_center.y = self.sim_height / 2.0
         self.wire_radius = self.sim_min_width * 0.4
@@ -170,8 +173,9 @@ class Simulation(QMainWindow):
     def update_scale(self):
         """Update the scale based on the current window size."""
         self.c_scale = min(self.canvas.width(), self.canvas.height()) / self.sim_min_width
+
         self.sim_width = self.canvas.width() / self.c_scale
-        self.sim_height = self.canvas.height() / self.c_scale
+        self.sim_height = self.height() / self.c_scale
 
     def resizeEvent(self, event):
         self.update_scale()
@@ -180,18 +184,18 @@ class Simulation(QMainWindow):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
             self.close()
-        elif event.key() == Qt.Key_R:
-            # Reset the simulation
             ...
 
     def simulate(self, dt):
         sdt = dt / self.num_steps
         for _ in range(0, self.num_steps):
             self.bead.start_step(sdt)
-            self.bead.keep_on_wire(self.wire_center, self.wire_radius)
-            # force = math.fabs(_lambda / sdt / sdt)
+            _lambda = self.bead.keep_on_wire(self.wire_center, self.wire_radius)
+            force = math.fabs(_lambda / sdt / sdt)
+            self.pdb_label.setText(f"PDB {force:02.3f}")
             self.bead.end_step(sdt)
-            self.analytic_bead.simulate(sdt, -GRAVITY.y)
+            force = self.analytic_bead.simulate(sdt, -GRAVITY.y)
+            self.analytic_label.setText(f"Analytic {force:02.3f}")
 
     def timerEvent(self, event):
         """measure the time elapsed between updates (in seconds), which is essential for time based
@@ -200,7 +204,8 @@ class Simulation(QMainWindow):
         how fast or slow the update loop is running."""
         current_time = self.elapsed_timer.elapsed()  # milliseconds
         dt = (current_time - self.last_time) / 1000.0  # convert ms to seconds
-        self.simulate(dt)
+        if self.run_sim:
+            self.simulate(dt)
         self.last_time = current_time
         # call redraw of the Simulation
         self.canvas.update()
@@ -216,8 +221,6 @@ class Simulation(QMainWindow):
         self.draw_circle(painter, self.bead.pos, self.bead.radius, QColor(255, 0, 0), True)
         self.draw_circle(painter, pos, self.analytic_bead.bead_radius, QColor(0, 255, 0), True)
 
-        # self.draw_text(painter, "Bead Press R to reset", 10, 20, 16, QColor(0, 0, 0))
-
     def draw_circle(self, painter, position, radius, colour, filled=False):
         """Draw a circle representing the ball on the Simulation."""
         painter.setPen(QPen(colour))
@@ -230,23 +233,6 @@ class Simulation(QMainWindow):
         radius = radius * self.c_scale
         # Draw the circle
         painter.drawEllipse(int(x - radius), int(y - radius), int(radius * 2), int(radius * 2))
-
-    def draw_text(self, painter, text, x, y, size, colour, font="Arial"):
-        """
-        Draw text on the Simulation.
-
-        Args:
-            painter (QPainter): The painter to draw with.
-            text (str): The text to draw.
-            x (int): The x-coordinate for the text.
-            y (int): The y-coordinate for the text.
-            size (int): The font size of the text.
-            colour (QColor): The colour of the text.
-            font (str): The font family of the text.
-        """
-        painter.setPen(colour)
-        painter.setFont(QFont(font, size))
-        painter.drawText(x, y, text)
 
 
 if __name__ == "__main__":

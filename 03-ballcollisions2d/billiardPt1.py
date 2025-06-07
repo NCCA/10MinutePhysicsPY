@@ -32,9 +32,7 @@ class Ball:
         self.velocity = vel.clone()
         self.radius = radius
         self.mass = mass
-        self.colour = QColor(
-            random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
-        )
+        self.colour = QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
     def update(self, dt: float) -> None:
         self.velocity += GRAVITY * dt
@@ -158,9 +156,7 @@ class Simulation(QMainWindow):
         # Use the canvas size, not the window size
         canvas_width = self.canvas.width()
         canvas_height = self.canvas.height()
-        self.c_scale = min(
-            canvas_width / self.sim_width, canvas_height / self.sim_height
-        )
+        self.c_scale = min(canvas_width / self.sim_width, canvas_height / self.sim_height)
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
@@ -237,9 +233,7 @@ class Simulation(QMainWindow):
         x = self.canvas_x(ball.pos)
         y = self.canvas_y(ball.pos)
         radius = ball.radius * self.c_scale
-        painter.drawEllipse(
-            int(x - radius), int(y - radius), int(radius * 2), int(radius * 2)
-        )
+        painter.drawEllipse(int(x - radius), int(y - radius), int(radius * 2), int(radius * 2))
 
     def draw_text(self, painter, text, x, y, size, colour, font="Arial"):
         painter.setPen(colour)
