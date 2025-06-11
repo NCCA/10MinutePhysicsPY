@@ -7,6 +7,8 @@ members = [
     "10minutephysicsdemos",
     "beads",
     "cannomball2d",
+    "cannonball3d",
+    "pendulum",
     "pinball",
 ]
 
@@ -30,22 +32,45 @@ name = "beads"
 version = "0.1.0"
 source = { virtual = "05-beads" }
 dependencies = [
+    { name = "nccapy" },
     { name = "pyside6" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pyside6", specifier = ">=6.9.0" }]
+requires-dist = [
+    { name = "nccapy" },
+    { name = "pyside6", specifier = ">=6.9.0" },
+]
 
 [[package]]
 name = "cannomball2d"
 version = "0.1.0"
 source = { virtual = "01-cannonball2d" }
 dependencies = [
+    { name = "nccapy" },
     { name = "pyside6" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pyside6", specifier = ">=6.9.0" }]
+requires-dist = [
+    { name = "nccapy" },
+    { name = "pyside6", specifier = ">=6.9.0" },
+]
+
+[[package]]
+name = "cannonball3d"
+version = "0.1.0"
+source = { virtual = "02-cannonball3d" }
+dependencies = [
+    { name = "nccapy" },
+    { name = "pyside6" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "nccapy" },
+    { name = "pyside6", specifier = ">=6.9.0" },
+]
 
 [[package]]
 name = "nccapy"
@@ -90,6 +115,21 @@ wheels = [
 ]
 
 [[package]]
+name = "pendulum"
+version = "0.1.0"
+source = { virtual = "06-pendulum" }
+dependencies = [
+    { name = "nccapy" },
+    { name = "pyside6" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "nccapy" },
+    { name = "pyside6", specifier = ">=6.9.0" },
+]
+
+[[package]]
 name = "pillow"
 version = "11.2.1"
 source = { registry = "https://pypi.org/simple" }
@@ -124,11 +164,15 @@ name = "pinball"
 version = "0.1.0"
 source = { virtual = "04-pinball" }
 dependencies = [
+    { name = "nccapy" },
     { name = "pyside6" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pyside6", specifier = ">=6.9.0" }]
+requires-dist = [
+    { name = "nccapy" },
+    { name = "pyside6", specifier = ">=6.9.0" },
+]
 
 [[package]]
 name = "pygame"

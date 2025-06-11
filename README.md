@@ -20,7 +20,8 @@ To install the pre-requisites. Each of the individual demos can be run using ./<
 ```
 
 1. [Cannonball 2D](01-cannonball2d/)
-2. This VR demo is not implemented.
+2. [Cannonball 3D](02-cannonball3d/)
 3. [Ball collision handling in 2d](03-ballcollision2d/)
 4. [Pinball](04-pinball/)
 5. [Beads](05-beads/)
+6. [Pendulums](06-pendulum)
