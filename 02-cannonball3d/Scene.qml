@@ -17,20 +17,18 @@ Window {
     property int controllerIndex: 0 // 0 = Orbit, 1 = WASD
     property bool running : false
     property bool gridVisible: true
+    property bool showPlanes: false
     View3D {
         id: view3d
         objectName : "view3d"
         anchors.fill: parent
 
         environment: SceneEnvironment {
-            Node {
-                position: Qt.vector3d(0, 1, 0)
-                InfiniteGrid {
+                 InfiniteGrid {
                     id: grid
                     gridInterval: 10
                     visible: win.gridVisible
                 }
-            }
             clearColor: "black"
             backgroundMode: SceneEnvironment.Color
             fog: Fog {
@@ -91,166 +89,61 @@ Window {
             shadowFactor: 10 // not a direct mapping, but controls shadow darkness
             shadowMapFar: 1
         }
-        // // Left plane (x = -1.5)
-        // Model {
-        //     source: "#Rectangle"
-        //     position: Qt.vector3d(-1.5, 1.0, 0.0)
-        //     eulerRotation : Qt.vector3d(0,90,0)
-        //     scale: Qt.vector3d(0.05, 0.05, 0.05) // Thin in X, tall in Y, wide in Z
-        //     materials: DefaultMaterial {
-        //         diffuseColor: "#00ff00"
-        //         opacity: 0.3
-        //     }
-        // }
-
-        // // // Right plane (x = 1.5)
-        // Model {
-        //     source: "#Rectangle"
-        //     position: Qt.vector3d(1.7, 1.0, 0.0)
-        //     eulerRotation : Qt.vector3d(0,90,0)
-        //     scale: Qt.vector3d(0.05, 0.05, 0.05) // Thin in X, tall in Y, wide in Z
-        //     materials: DefaultMaterial {
-        //         diffuseColor: "#00ff00"
-        //         opacity: 0.3
-        //     }
-        // }
-
-        // Model {
-        //     source: "#Rectangle"
-        //     position: Qt.vector3d(0, 1.0, 2.7)
-        //     eulerRotation : Qt.vector3d(0,0,0)
-        //     scale: Qt.vector3d(0.05, 0.05, 0.05) // Thin in X, tall in Y, wide in Z
-        //     materials: DefaultMaterial {
-        //         diffuseColor: "#00ff00"
-        //         opacity: 0.3
-        //     }
-        // }
-        // Model {
-        //     source: "#Rectangle"
-        //     position: Qt.vector3d(0, 1.0, -2.7)
-        //     eulerRotation : Qt.vector3d(0,0,0)
-        //     scale: Qt.vector3d(0.05, 0.05, 0.05) // Thin in X, tall in Y, wide in Z
-        //     materials: DefaultMaterial {
-        //         diffuseColor: "#00ff00"
-        //         opacity: 0.3
-        //     }
-        // }
-
-
-        // // Front plane (z = 2.5)
-        // Model {
-        //     source: "#Rectangle"
-        //     position: Qt.vector3d(0.5, 0.5, 0.0)
-        //     scale: Qt.vector3d(3, 1, 0.01)
-        //     x: 0
-        //     y: 0.5
-        //     z: 2.5
-        //     materials: DefaultMaterial {
-        //         diffuseColor: "#0000ff"
-        //         opacity: 0.3
-        //     }
-        // }
-
-
-        // Model {
-        //     id : ground
-        //     source: "#Rectangle"
-        //     position: Qt.vector3d(0.0, -0.4, 0.0)
-        //     eulerRotation : Qt.vector3d(-90,0,0)
-        //     scale: Qt.vector3d(3, 5, 0.01)
-        //     x: 0
-        //     y: 0
-        //     z: 0
-        //     materials: DefaultMaterial {
-        //         diffuseColor: "#252525"
-        //         opacity: 1.0
-        //     }
-        // }
-
-        // Model {
-        //             id : "ground"
-        //            source: "#Rectangle"
-        //            position: Qt.vector3d(0.0, -0.2, 0.0)
-        //            scale: Qt.vector3d(20, 1, 20)
-        //            eulerRotation : Qt.vector3d(-90,0,0)
-        //            y: -0.1
-        //            materials: DefaultMaterial {
-        //                diffuseColor: Qt.rgba(0.2, 0.2, 0.2, 0.3)
-        //                specularAmount: 1.0
-        //                specularRoughness: 0.1
-        //            }
-        //            receivesShadows: true
-        //        }
-        // Left plane (x = xMin)
-            // Model {
-            //     source: "#Rectangle"
-            //     //position: Qt.vector3d(0.5, 0.5, 0.0)
-            //     //scale: Qt.vector3d(0.1, 0.1,0.5) // Math.abs(zMax - zMin))
-            //     //eulerRotation : Qt.vector3d(0,90,0)
-            //     x: xMin
-            //     y: 0.5
-            //     z: (zMax + zMin) / 2
-            //     materials: DefaultMaterial { diffuseColor: "#00ff00"; opacity: 0.3 }
-            // }
-            // // Right plane (x = xMax)
-            // Model {
-            //     source: "#Rectangle"
-            //     position: Qt.vector3d(0.5, 0.5, 0.0)
-            //     scale: Qt.vector3d(0.01, 1, Math.abs(zMax - zMin))
-            //     x: xMax
-            //     y: 0.5
-            //     z: (zMax + zMin) / 2
-            //     materials: DefaultMaterial { diffuseColor: "#00ff00"; opacity: 0.3 }
-            // }
-            // // Back plane (z = zMin)
-            // Model {
-            //     source: "#Rectangle"
-            //     position: Qt.vector3d(0.5, 0.5, 0.0)
-            //     scale: Qt.vector3d(Math.abs(xMax - xMin), 1, 0.01)
-            //     x: (xMax + xMin) / 2
-            //     y: 0.5
-            //     z: zMin
-            //     materials: DefaultMaterial { diffuseColor: "#0000ff"; opacity: 0.3 }
-            // }
-            // // Front plane (z = zMax)
-            // Model {
-            //     source: "#Rectangle"
-            //     position: Qt.vector3d(0.5, 0.5, 0.0)
-            //     scale: Qt.vector3d(Math.abs(xMax - xMin), 1, 0.01)
-            //     x: (xMax + xMin) / 2
-            //     y: 0.5
-            //     z: zMax
-            //     materials: DefaultMaterial { diffuseColor: "#0000ff"; opacity: 0.3 }
-            // }
-            // // Floor (y = yMin)
             Model {
-
                 id : ground
                 source: "#Rectangle"
-                position: Qt.vector3d(0.0, -0.4, 0.0)
                 eulerRotation : Qt.vector3d(-90,0,0)
-                scale: Qt.vector3d(3, 5, 0.01)
+                scale: Qt.vector3d(1, 1, 0.01)
                 x: 0
-                y: 0
+                y: ball.ball_radius
                 z: 0
                 materials: DefaultMaterial { diffuseColor: "#ffffff"; opacity: 1 }
-                // source: "#Rectangle"
-                // position: Qt.vector3d(0.0, 0.0, 0.0)
-                // //scale: Qt.vector3d(Math.abs(xMax - xMin), Math.abs(zMax - zMin), 0.01)
-                // scale : Qt.vector3d(20.0,1.0,20.0)
-                // eulerRotation : Qt.vector3d(-90,0,0)
-                // x: (xMax + xMin) / 2
-                // y: yMin
-                // z: (zMax + zMin) / 2
-                // materials: DefaultMaterial { diffuseColor: "#000000"; opacity: 0.3 }
-                // PrincipledMaterial {
-                //         id: commonMaterial
-                //         baseColor: "grey"
-                //     }
             }
 
-
-
+            // Left plane (x = xMin)
+            Model {
+                visible: win.showPlanes
+                source: "#Rectangle"
+                x: xMin
+                y: 0.5
+                z: (zMax + zMin) / 2
+                scale: Qt.vector3d(0.01, 1, Math.abs(zMax - zMin))
+                eulerRotation: Qt.vector3d(0, 90, 0)
+                materials: DefaultMaterial { diffuseColor: "#00ff00"; opacity: 0.3 }
+            }
+            // Right plane (x = xMax)
+            Model {
+                visible: true // win.showPlanes
+                source: "#Rectangle"
+                x: xMax
+                y: 4
+                z: (zMax + zMin) / 2
+                scale: Qt.vector3d(0.05, 0.05, 0.05)
+                eulerRotation: Qt.vector3d(0, 90, 0)
+                materials: DefaultMaterial { diffuseColor: "#ff0000"; opacity: 0.3 }
+            }
+            // Back plane (z = zMin)
+            Model {
+                visible:  true //win.showPlanes
+                source: "#Rectangle"
+                x: (xMax + xMin) / 2
+                y: 4
+                z: zMin
+                scale: Qt.vector3d( 0.05, 0.05, 0.01)
+                eulerRotation: Qt.vector3d(0, 0, 0)
+                materials: DefaultMaterial { diffuseColor: "#0000ff"; opacity: 0.3 }
+            }
+            // Front plane (z = zMax)
+            Model {
+                visible: true // win.showPlanes
+                source: "#Rectangle"
+                x: (xMax + xMin) / 2
+                y: 4
+                z: zMax
+                scale : Qt.vector3d(0.05,0.05,0.01)
+                eulerRotation: Qt.vector3d(0, 0, 0)
+                materials: DefaultMaterial { diffuseColor: "#ffff00"; opacity: 0.3 }
+            }
 
         Model {
             id: ball
@@ -267,18 +160,12 @@ Window {
             scale: Qt.vector3d(ball_radius,ball_radius,ball_radius)
 
         }
-    }
 
+}
 
 // UI Overlay
    Row {
        spacing: 16
-       // anchors {
-       //     top: parent.top
-       //     right: parent.left
-       //     topMargin: 24
-       //     rightMargin: 24
-       // }
 
        Button {
            text: win.running ? "Stop" : "Start"
@@ -321,6 +208,10 @@ Window {
                text: "Show Infinite Grid"
                color : "white"
            }
+       }
+       Button {
+           text: win.showPlanes ? "Hide Planes" : "Show Planes"
+           onClicked: win.showPlanes = !win.showPlanes
        }
 
    }

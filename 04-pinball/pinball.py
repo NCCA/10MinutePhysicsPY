@@ -3,7 +3,7 @@
 import math
 import sys
 
-from nccapy.Math.Vec2 import Vec2
+from ncca.ngl import Vec2
 from PySide6.QtCore import QElapsedTimer, QPointF, QRectF, Qt
 from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen, QPolygonF
 from PySide6.QtWidgets import (
@@ -23,7 +23,7 @@ def closest_point_on_segment(p, a, b):
     ab = b - a
     ab_dot_ab = ab.dot(ab)
     if ab_dot_ab == 0.0:
-        return a.clone()
+        return a.copy()
     t = (p.dot(ab) - a.dot(ab)) / ab_dot_ab
     t = max(0.0, min(1.0, t))
     closest = a + ab * t
@@ -33,7 +33,7 @@ def closest_point_on_segment(p, a, b):
 class Obstacle:
     def __init__(self, radius: float, pos: Vec2, push_velocity: float) -> None:
         self.radius = radius
-        self.pos = pos.clone()
+        self.pos = pos.copy()
         self.push_velocity = push_velocity
         self.colour = QColor("#FF8000")
 
@@ -51,7 +51,7 @@ class Flipper:
     ) -> None:
         # fix flipper values
         self.radius = radius
-        self.pos = pos.clone()
+        self.pos = pos.copy()
         self.length = length
         self.rest_angle = rest_angle
         self.max_rotation = math.fabs(max_rotation)
@@ -100,8 +100,8 @@ class Ball:
     def __init__(
         self, radius: float, mass: float, pos: Vec2, vel: Vec2, restitution: float, colour: QColor = QColor(0, 0, 0)
     ) -> None:
-        self.pos = pos.clone()
-        self.velocity = vel.clone()
+        self.pos = pos.copy()
+        self.velocity = vel.copy()
         self.radius = radius
         self.mass = mass
         self.colour = colour

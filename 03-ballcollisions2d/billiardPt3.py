@@ -5,7 +5,7 @@ import random
 import sys
 from enum import Enum
 
-from nccapy.Math.Vec2 import Vec2
+from ncca.ngl import Vec2
 from PySide6.QtCore import QElapsedTimer, QFile, Qt
 from PySide6.QtGui import QBrush, QColor, QPainter, QPen
 from PySide6.QtUiTools import QUiLoader
@@ -28,13 +28,11 @@ class Ball:
     """
 
     def __init__(self, radius: float, mass: float, pos: Vec2, vel: Vec2) -> None:
-        self.pos = pos.clone()
-        self.velocity = vel.clone()
+        self.pos = pos.copy()
+        self.velocity = vel.copy()
         self.radius = radius
         self.mass = mass
-        self.colour = QColor(
-            random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
-        )
+        self.colour = QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
     def update(self, dt: float, integration_mode: Enum) -> None:
         """
@@ -187,9 +185,7 @@ class Simulation(QMainWindow):
         # Use the canvas size, not the window size
         canvas_width = self.canvas.width()
         canvas_height = self.canvas.height()
-        self.c_scale = min(
-            canvas_width / self.sim_width, canvas_height / self.sim_height
-        )
+        self.c_scale = min(canvas_width / self.sim_width, canvas_height / self.sim_height)
 
     def keyPressEvent(self, event) -> None:
         """Handle key press events for the simulation."""
@@ -295,9 +291,7 @@ class Simulation(QMainWindow):
         x = self.canvas_x(ball.pos)
         y = self.canvas_y(ball.pos)
         radius = ball.radius * self.c_scale
-        painter.drawEllipse(
-            int(x - radius), int(y - radius), int(radius * 2), int(radius * 2)
-        )
+        painter.drawEllipse(int(x - radius), int(y - radius), int(radius * 2), int(radius * 2))
 
 
 if __name__ == "__main__":

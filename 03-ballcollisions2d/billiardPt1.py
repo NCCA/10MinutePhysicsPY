@@ -4,7 +4,7 @@ import math
 import random
 import sys
 
-from nccapy.Math.Vec2 import Vec2
+from ncca.ngl import Vec2
 from PySide6.QtCore import QElapsedTimer, Qt
 from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen
 from PySide6.QtWidgets import (
@@ -28,8 +28,8 @@ class Ball:
     """
 
     def __init__(self, radius: float, mass: float, pos: Vec2, vel: Vec2) -> None:
-        self.pos = pos.clone()
-        self.velocity = vel.clone()
+        self.pos = pos.copy()
+        self.velocity = vel.copy()
         self.radius = radius
         self.mass = mass
         self.colour = QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))

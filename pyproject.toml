@@ -1,10 +1,10 @@
 [project]
 name = "10MinutePhysicsDemos"
-version = "0.1.0"
+version = "0.1.5"
 description = "My version of the 10 minute physics demos"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = ["nccapy>=0.1.7", "pyside6>=6.9.0"]
+dependencies = ["ncca-ngl", "pyside6>=6.9.0"]
 
 [tool.uv.workspace]
 members = [

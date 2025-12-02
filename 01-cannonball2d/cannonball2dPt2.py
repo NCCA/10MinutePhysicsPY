@@ -3,7 +3,7 @@
 import sys
 from copy import copy
 
-from nccapy.Math.Vec2 import Vec2
+from ncca.ngl import Vec2
 from PySide6.QtCore import QElapsedTimer, Qt
 from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen
 from PySide6.QtWidgets import QApplication, QMainWindow

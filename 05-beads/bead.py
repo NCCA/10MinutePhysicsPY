@@ -3,7 +3,7 @@
 import math
 import sys
 
-from nccapy.Math.Vec2 import Vec2
+from ncca.ngl import Vec2
 from PySide6.QtCore import QElapsedTimer, QFile, Qt, Slot
 from PySide6.QtGui import QBrush, QColor, QPainter, QPen
 from PySide6.QtUiTools import QUiLoader
@@ -16,13 +16,13 @@ class Bead:
     def __init__(self, radius: float, mass: float, pos: Vec2) -> None:
         self.radius = radius
         self.mass = mass
-        self.pos = pos.clone()
-        self.previous_pos = pos.clone()
+        self.pos = pos.copy()
+        self.previous_pos = pos.copy()
         self.velocity = Vec2(0, 0)
 
     def start_step(self, dt: float) -> None:
         self.velocity += GRAVITY * dt
-        self.previous_pos = self.pos.clone()  # .set(self.pos.x, self.pos.y)
+        self.previous_pos = self.pos.copy()  # .set(self.pos.x, self.pos.y)
         self.pos += self.velocity * dt
 
     def keep_on_wire(self, center: Vec2, radius: float) -> float:

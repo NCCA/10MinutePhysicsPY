@@ -2,7 +2,7 @@
 
 import sys
 
-from nccapy.Math.Vec2 import Vec2
+from ncca.ngl import Vec2
 from PySide6.QtCore import QElapsedTimer, Qt
 from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen
 from PySide6.QtWidgets import QApplication, QMainWindow
@@ -25,11 +25,11 @@ class Ball:
             vel (Vec2): Initial velocity of the ball.
             radius (float): Radius of the ball.
         """
-        self.pos = pos.clone()
-        self.pos_simple = pos.clone()
+        self.pos = pos.copy()
+        self.pos_simple = pos.copy()
         self.num_steps = 1000  # Number of steps for more accurate simulation
-        self.velocity = vel.clone()
-        self.velocity_simple = vel.clone()
+        self.velocity = vel.copy()
+        self.velocity_simple = vel.copy()
         self.radius = radius
         self.colour = QColor(255, 0, 0)
 

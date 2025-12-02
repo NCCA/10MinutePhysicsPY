@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run --script
 import sys
 
-from nccapy import Vec3
+from ncca.ngl import Vec3
 from PySide6.QtCore import Property, QObject, QTimer, QUrl, Signal, Slot
 from PySide6.QtGui import QVector3D
 from PySide6.QtQml import QQmlApplicationEngine
@@ -77,21 +77,54 @@ class Bounds(QObject):
             self.yMinChanged.emit()
 
 
+class Ball:
+    """
+    Represents a 2D ball with position, velocity, radius, and color.
+    Used for simulating projectile motion under gravity.
+    """
+
+    def __init__(self, radius: float, pos: Vec3, vel: Vec3) -> None:
+        self.pos = pos.copy()
+        self.velocity = vel.copy()
+        self.radius = radius
+
+    def update(self, dt: float) -> None:
+        self.velocity += GRAVITY * dt
+        self.pos += self.velocity * dt
+
+    def wall_collide(self):
+        # Collision with world bounds
+        if self.pos.x < -WORLD_SIZE.x:
+            self.pos.x = -WORLD_SIZE.x
+            self.velocity.x = -self.velocity.x
+        if self.pos.x > WORLD_SIZE.x:
+            self.pos.x = WORLD_SIZE.x
+            self.velocity.x = -self.velocity.x
+        if self.pos.z < -WORLD_SIZE.z:
+            self.pos.z = -WORLD_SIZE.z
+            self.velocity.z = -self.velocity.z
+        if self.pos.z > WORLD_SIZE.z:
+            self.pos.z = WORLD_SIZE.z
+            self.velocity.z = -self.velocity.z
+        if self.pos.y < self.radius:
+            self.pos.y = self.radius
+            self.velocity.y = -self.velocity.y
+
+
 class BallSim(QObject):
     ballPositionChanged = Signal()
 
     def __init__(self, pos: Vec3, radius: float, velocity: Vec3) -> None:
         super().__init__()
-        self._pos = pos.clone()
-        self._vel = velocity.clone()
-        self._initial_pos = pos.clone()
-        self._initial_vel = velocity.clone()
-        self.radius = radius
+        self._initial_position = pos.copy()
+        self._initial_velocity = velocity.copy()
+
+        self.ball = Ball(radius, pos, velocity)
         self._running = False
 
     @Property("QVector3D", notify=ballPositionChanged)
     def ballPosition(self):
-        return QVector3D(self._pos.x, self._pos.y, self._pos.z)
+        return QVector3D(self.ball.pos.x, self.ball.pos.y, self.ball.pos.z)
 
     @Slot()
     def start(self):
@@ -104,35 +137,18 @@ class BallSim(QObject):
     @Slot()
     def reset(self):
         self._running = False
-        self._pos = self._initial_pos.clone()
-        self._vel = self._initial_vel.clone()
+        self.ball.pos = self._initial_position.copy()
+        self.ball.velocity = self._initial_velocity.copy()
         self.ballPositionChanged.emit()
 
     @Slot()
     def step(self):
         if not self._running:
             return
+
         dt = 1.0 / 60.0
-        self._vel += GRAVITY * dt
-        self._pos += self._vel * dt
-
-        # Collision with world bounds
-        if self._pos.x < -WORLD_SIZE.x:
-            self._pos.x = -WORLD_SIZE.x
-            self._vel.x = -self._vel.x
-        if self._pos.x > WORLD_SIZE.x:
-            self._pos.x = WORLD_SIZE.x
-            self._vel.x = -self._vel.x
-        if self._pos.z < -WORLD_SIZE.z:
-            self._pos.z = -WORLD_SIZE.z
-            self._vel.z = -self._vel.z
-        if self._pos.z > WORLD_SIZE.z:
-            self._pos.z = WORLD_SIZE.z
-            self._vel.z = -self._vel.z
-        if self._pos.y < self.radius:
-            self._pos.y = self.radius
-            self._vel.y = -self._vel.y
-
+        self.ball.update(dt)
+        self.ball.wall_collide()
         self.ballPositionChanged.emit()
 
 
@@ -155,7 +171,7 @@ if __name__ == "__main__":
 
         def update_ball():
             ball.setProperty("ballPosition", sim.ballPosition)
-            ball.setProperty("ball_radius", sim.radius)
+            ball.setProperty("ball_radius", sim.ball.radius)
 
         sim.ballPositionChanged.connect(update_ball)
 

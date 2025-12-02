@@ -4,7 +4,7 @@ import random
 import sys
 from enum import Enum
 
-from nccapy import Vec2
+from ncca.ngl import Vec2
 from PySide6.QtCore import QElapsedTimer, Qt
 from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen
 from PySide6.QtWidgets import QApplication, QMainWindow
@@ -29,8 +29,8 @@ class Ball:
             vel (Vec2): Initial velocity of the ball.
             radius (float): Radius of the ball.
         """
-        self.pos = pos.clone()
-        self.velocity = velocity.clone()
+        self.pos = pos.copy()
+        self.velocity = velocity.copy()
         self.radius = radius * random.uniform(0.5, 1.5)  # Randomize radius slightly
         self.colour = QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
         self.num_steps = 100  # Number of steps for more accurate simulation
